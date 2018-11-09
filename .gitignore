@@ -1,0 +1,14 @@
+.idea
+*.iml
+
+build
+.metadata
+.settings
+.classpath
+.project
+.recommenders
+
+target
+*.log
+**/application-dev.yml
+**/src/test

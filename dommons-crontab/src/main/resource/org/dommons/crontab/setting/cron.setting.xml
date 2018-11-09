@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<crontab.setting>
+	<setting parser="org.dommons.crontab.setting.cron.CronSettingFactory$CrontabParser" />
+	<setting parser="org.dommons.crontab.setting.cron.CronSettingFactory$ExpressionParser" />
+	<setting parser="org.dommons.crontab.setting.simple.DefaultCronsetFactory$PatternParser" />
+</crontab.setting>

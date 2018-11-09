@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<converters>
+	<converter class="org.dommons.core.convert.handlers.StringConverter">
+		<target class="java.lang.String">
+			<source class="java.lang.Number" />
+			<source class="java.util.Date" />
+			<source class="java.lang.Boolean" />
+			<source class="java.lang.Character" />
+			<source class="java.util.Calendar" />
+			<source class="java.lang.Object" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.ExceptionConverter">
+		<target class="java.lang.RuntimeException">
+			<source class="java.lang.Throwable" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.BooleanConverter">
+		<target class="java.lang.Boolean">
+			<source class="java.lang.Integer" />
+			<source class="java.lang.Long" />
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.CharacterConverter">
+		<target class="java.lang.Character">
+			<source class="java.lang.Boolean" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Number" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.date.DateConverter">
+		<target class="java.util.Date">
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+			<source class="java.lang.Long" />
+			<source class="java.math.BigInteger" />
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.date.CalenderConverter">
+		<target class="java.util.Calendar">
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+			<source class="java.lang.Long" />
+			<source class="java.math.BigInteger" />
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.date.TimeConverter">
+		<target class="java.sql.Time">
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+			<source class="java.lang.Long" />
+			<source class="java.math.BigInteger" />
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.date.TimestampConverter">
+		<target class="java.sql.Timestamp">
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+			<source class="java.lang.Long" />
+			<source class="java.math.BigInteger" />
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.date.SQLDateConverter">
+		<target class="java.sql.Date">
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+			<source class="java.lang.Long" />
+			<source class="java.math.BigInteger" />
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.BigDecimalConverter">
+		<target class="java.math.BigDecimal">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.NumeriConverter">
+		<target class="java.lang.Number">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+		<target class="org.dommons.core.number.Numeric">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.DoubleConverter">
+		<target class="java.lang.Double">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.LongConverter">
+		<target class="java.lang.Long">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.BigIntegerConverter">
+		<target class="java.math.BigInteger">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.IntegerConverter">
+		<target class="java.lang.Integer">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.FloatConverter">
+		<target class="java.lang.Float">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.number.ShortConverter">
+		<target class="java.lang.Short">
+			<source class="java.lang.Number" />
+			<source class="java.lang.CharSequence" />
+			<source class="java.lang.Boolean" />
+			<source class="java.util.Date" />
+			<source class="java.util.Calendar" />
+		</target>
+	</converter>
+
+	<converter class="org.dommons.core.convert.handlers.collection.ListConverter">
+		<target class="java.util.List">
+			<source class="java.util.Collection" />
+			<source class="java.lang.Object" />
+		</target>
+	</converter>
+	
+	<converter class="org.dommons.core.convert.handlers.EnumConverter">
+		<target class="java.lang.Enum">
+			<source class="java.lang.CharSequence" />
+		</target>
+	</converter>
+</converters>

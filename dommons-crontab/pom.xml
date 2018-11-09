@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.dommons.crontab</groupId>
+	<artifactId>dommons-crontab</artifactId>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.dommons</groupId>
+		<artifactId>dommons</artifactId>
+		<version>0.4.7-SNAPSHOT</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.dommons.core</groupId>
+			<artifactId>dommons-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.dommons.io</groupId>
+			<artifactId>dommons-io</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<testSourceDirectory>src/test</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>src/main/resource</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

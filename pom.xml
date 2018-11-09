@@ -1,0 +1,169 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.dommons</groupId>
+	<artifactId>dommons</artifactId>
+	<version>0.4.7-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<properties>
+		<project.base>${basedir}</project.base>
+		<jdk.version>1.6</jdk.version>
+		<spring.version>4.3.17.RELEASE</spring.version>
+		<dommons.version>0.4.7-SNAPSHOT</dommons.version>
+	</properties>
+
+	<modules>
+		<module>dommons-core</module>
+		<module>dommons-io</module>
+		<module>dommons-crontab</module>
+		<module>dommons-jdbc</module>
+		<module>dommons-android</module>
+		<module>dommons-jdbc-adapter</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>1.2.16</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.dommons.core</groupId>
+				<artifactId>dommons-core</artifactId>
+				<version>${dommons.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.dommons.io</groupId>
+				<artifactId>dommons-io</artifactId>
+				<version>${dommons.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.5</version>
+					<configuration>
+						<source>${jdk.version}</source>
+						<target>${jdk.version}</target>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.17</version>
+					<configuration>
+						<skip>true</skip>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.1</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+						<charset>UTF-8</charset>
+						<show>public</show>
+						<quiet>true</quiet>
+					</configuration>
+					<executions>
+						<execution>
+							<id>javadocs</id>
+							<phase>install</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+							<configuration>
+								<additionalparam>-Xdoclint:none</additionalparam>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.1</version>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.3</version>
+				<executions>
+					<execution>
+						<id>copy-target</id>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<copy todir="../../target">
+									<fileset dir="${project.build.directory}">
+										<include name="*.jar" />
+									</fileset>
+								</copy>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>clean-target</id>
+						<phase>clean</phase>
+						<configuration>
+							<tasks>
+								<delete dir="${project.build.directory}" />
+
+								<mkdir dir="${project.build.directory}" />
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>usr-release</id>
+			<name>release</name>
+			<url>http://my.office.hupun.com:7481/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>usr-snapshot</id>
+			<name>snapshot</name>
+			<url>http://my.office.hupun.com:7481/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<scm>
+		<connection>scm:git:https://github.com/demonolver/dommons.git</connection>
+	</scm>
+</project>

@@ -1,0 +1,7 @@
+factories = dom4j, w3c
+
+dom4j.class = org.dom4j.Document
+dom4j.factory = org.dommons.dom.dom4j.XDom4jFactory
+
+w3c.class = org.w3c.dom.Document
+w3c.factory = org.dommons.dom.w3c.XW3CFactory
