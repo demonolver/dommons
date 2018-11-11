@@ -3,6 +3,8 @@
  */
 package org.dommons.core.collections.map.concurrent;
 
+import java.util.concurrent.locks.Lock;
+
 import org.dommons.core.collections.map.ref.SoftHashMap;
 
 /**
@@ -15,5 +17,10 @@ public class ConcurrentSoftMap<K, V> extends ConcurrentMapWrapper<K, V> {
 
 	public ConcurrentSoftMap() {
 		super(new SoftHashMap());
+	}
+
+	@Override
+	protected Lock readLock() {
+		return lock.writeLock();
 	}
 }

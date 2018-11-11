@@ -4,6 +4,7 @@
 package org.dommons.core.collections.map.concurrent;
 
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
 
 /**
  * 线程安全弱引用映射表
@@ -15,5 +16,10 @@ public class ConcurrentWeakMap<K, V> extends ConcurrentMapWrapper<K, V> {
 
 	public ConcurrentWeakMap() {
 		super(new WeakHashMap());
+	}
+
+	@Override
+	protected Lock readLock() {
+		return lock.writeLock();
 	}
 }
