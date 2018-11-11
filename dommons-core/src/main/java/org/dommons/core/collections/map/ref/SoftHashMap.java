@@ -318,7 +318,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
 			SoftEntry<K, V> p = prev;
 			while (p != null) {
 				SoftEntry<K, V> next = p.next;
-				if (p.match(e)) {
+				if (p.match(e) || p.isEvicted()) {
 					if (prev == p) table[i] = next;
 					else prev.next = next;
 					p.next = null; // Help GC
@@ -584,6 +584,14 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
 		 */
 		protected int hash() {
 			return ele.hash;
+		}
+
+		/**
+		 * 是否被驱逐
+		 * @return 是、否
+		 */
+		private boolean isEvicted() {
+			return ele.get() == null;
 		}
 
 		/**

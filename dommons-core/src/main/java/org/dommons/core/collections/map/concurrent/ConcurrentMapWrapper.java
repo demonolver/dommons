@@ -37,7 +37,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public void clear() {
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			super.clear();
@@ -47,7 +47,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public boolean containsKey(Object key) {
-		Lock l = lock.readLock();
+		Lock l = readLock();
 		l.lock();
 		try {
 			return super.containsKey(key);
@@ -57,7 +57,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public boolean containsValue(Object value) {
-		Lock l = lock.readLock();
+		Lock l = readLock();
 		l.lock();
 		try {
 			return super.containsValue(value);
@@ -85,7 +85,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public V get(Object key) {
-		Lock l = lock.readLock();
+		Lock l = readLock();
 		l.lock();
 		try {
 			return super.get(key);
@@ -95,7 +95,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public boolean isEmpty() {
-		Lock l = lock.readLock();
+		Lock l = readLock();
 		l.lock();
 		try {
 			return super.isEmpty();
@@ -123,7 +123,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public V put(K key, V value) {
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			return super.put(key, value);
@@ -133,7 +133,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public void putAll(Map<? extends K, ? extends V> m) {
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			super.putAll(m);
@@ -143,7 +143,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public V putIfAbsent(K key, V value) {
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			V v = super.get(key);
@@ -155,7 +155,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public V remove(Object key) {
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			return super.remove(key);
@@ -166,7 +166,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 
 	public boolean remove(Object key, Object value) {
 		if (value == null) return false;
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			V v = super.get(key);
@@ -178,7 +178,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public V replace(K key, V value) {
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			if (!super.containsKey(key)) return null;
@@ -190,7 +190,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 
 	public boolean replace(K key, V oldValue, V newValue) {
 		if (oldValue == null || newValue == null) return false;
-		Lock l = lock.writeLock();
+		Lock l = writeLock();
 		l.lock();
 		try {
 			V v = super.get(key);
@@ -203,7 +203,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	public int size() {
-		Lock l = lock.readLock();
+		Lock l = readLock();
 		l.lock();
 		try {
 			return super.size();
@@ -231,6 +231,14 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	}
 
 	/**
+	 * 获取读取锁
+	 * @return 读取锁
+	 */
+	protected Lock readLock() {
+		return lock.readLock();
+	}
+
+	/**
 	 * 序列化读取
 	 * @param s 序列化输入流
 	 * @throws java.io.IOException
@@ -239,6 +247,14 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	protected void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
 		super.readObject(s);
 		lock = (ReadWriteLock) s.readObject();
+	}
+
+	/**
+	 * 获取写入锁
+	 * @return 写入锁
+	 */
+	protected Lock writeLock() {
+		return lock.writeLock();
 	}
 
 	/**
