@@ -27,9 +27,10 @@
 		<dependency>
 			<groupId>org.dommons</groupId>
 			<artifactId>dommons-jdbc-adapter</artifactId>
-			<version>${project.parent.version}</version>
+			<version>${dommons.version}</version>
 			<scope>provided</scope>
 			<type>pom</type>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>

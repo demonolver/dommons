@@ -9,6 +9,19 @@ package org.dommons.core.ref;
  */
 public class Strongref<T> implements Ref<T> {
 
+	/** 空对象引用 */
+	public static final Strongref empty = new Strongref(null);
+
+	/**
+	 * 生成强引用
+	 * @param referent 引用对象
+	 * @return 强引用
+	 */
+	public static <T> Strongref<T> ref(T referent) {
+		if (referent == null) return empty;
+		return new Strongref(referent);
+	}
+
 	private final T referent;
 
 	public Strongref(T referent) {
