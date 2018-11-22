@@ -71,8 +71,8 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 				String n = k.substring(8);
 				String format = props.getProperty("format." + n);
 				String type = props.getProperty(Stringure.join('.', "format", n, "type"), "numeric");
-				String locale = props.getProperty(Stringure.join('.', "format", n, "locale"));
 				String current = props.getProperty(Stringure.join('.', "format", n, "locale.current"));
+				String locale = Stringure.one(current, props.getProperty(Stringure.join('.', "format", n, "locale")));
 
 				try {
 					int prio = Integer.parseInt(props.getProperty("priority." + n));
@@ -200,9 +200,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		 * @return 是、否
 		 */
 		public boolean matches(String value, Locale locale) {
-			if (!Stringure.isEmpty(current)
-					&& !Stringure.join('_', locale.getLanguage(), locale.getCountry()).toLowerCase().startsWith(current))
-				return false;
+			if (!Stringure.isEmpty(current) && !locale.toString().toLowerCase().startsWith(current)) return false;
 			return pattern.matcher(value).matches();
 		}
 
