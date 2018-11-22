@@ -15,11 +15,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import org.dommons.core.Environments;
 import org.dommons.core.Silewarner;
 import org.dommons.core.convert.ConvertHandler;
 import org.dommons.core.convert.handlers.AbstractLocaleConverter;
@@ -70,13 +72,14 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 				String format = props.getProperty("format." + n);
 				String type = props.getProperty(Stringure.join('.', "format", n, "type"), "numeric");
 				String locale = props.getProperty(Stringure.join('.', "format", n, "locale"));
+				String current = props.getProperty(Stringure.join('.', "format", n, "locale.current"));
 
 				try {
 					int prio = Integer.parseInt(props.getProperty("priority." + n));
 					if (pattern != null && format != null) {
 						Pattern key = Pattern.compile(pattern);
 						NumberFormat nf = "radix".equals(type) ? new RadixFormat(format) : new NumericFormat(format, locale(locale));
-						formats.put(n, new StringNumeric(key, nf));
+						formats.put(n, new StringNumeric(key, nf, current));
 
 						Integer p = Integer.valueOf(prio);
 						Collection<String> ps = prios.get(p);
@@ -111,8 +114,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 	/**
 	 * 构造函数
 	 */
-	protected NumberConverter() {
-	}
+	protected NumberConverter() {}
 
 	public T convert(Object value, Class<? extends Object> source, Class<T> target) {
 		initialize();
@@ -149,8 +151,9 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 	private Number parseString(String str) {
 		str = Stringure.trim(str);
 		try {
+			Locale l = Environments.defaultLocale();
 			for (StringNumeric sn : formats) {
-				if (sn.matches(str)) return sn.parse(str);
+				if (sn.matches(str, l)) return sn.parse(str);
 			}
 		} catch (ParseException e) {
 			// ignore
@@ -168,15 +171,18 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 
 		private final Pattern pattern;
 		private final NumberFormat format;
+		private final String current;
 
 		/**
 		 * 构造函数
 		 * @param pattern 正则
 		 * @param format 数值格式
+		 * @param current 当前语言
 		 */
-		public StringNumeric(Pattern pattern, NumberFormat format) {
+		public StringNumeric(Pattern pattern, NumberFormat format, String current) {
 			this.pattern = pattern;
 			this.format = format;
+			this.current = current;
 		}
 
 		public boolean equals(Object o) {
@@ -190,9 +196,13 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		/**
 		 * 是否匹配值
 		 * @param value 值
+		 * @param locale 当前语言环境
 		 * @return 是、否
 		 */
-		public boolean matches(String value) {
+		public boolean matches(String value, Locale locale) {
+			if (!Stringure.isEmpty(current)
+					&& !Stringure.join('_', locale.getLanguage(), locale.getCountry()).toLowerCase().startsWith(current))
+				return false;
 			return pattern.matcher(value).matches();
 		}
 
