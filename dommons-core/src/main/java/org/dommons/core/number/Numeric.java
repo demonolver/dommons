@@ -677,7 +677,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	protected Numeric divide(BigDecimal other) {
-		return valueOf(dec.divide(other, new MathContext(dec.precision() - dec.scale() + 8, RoundingMode.HALF_UP)));
+		return valueOf(dec.divide(other, new MathContext(Math.max(0, dec.precision() - dec.scale() + 8), RoundingMode.HALF_UP)));
 	}
 
 	/**
