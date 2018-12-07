@@ -293,7 +293,7 @@ public final class Arrayard {
 	}
 
 	/**
-	 * 获取元素项值
+	 * 获取元素项值 序号不存在返回 <code>null</code>
 	 * @param list 数据集
 	 * @param index 序号
 	 * @return 元素项值
@@ -303,7 +303,7 @@ public final class Arrayard {
 	}
 
 	/**
-	 * 获取数组值
+	 * 获取数组值 序号不存在返回 <code>null</code>
 	 * @param array 数组
 	 * @param index 序号
 	 * @return 数组值
@@ -327,7 +327,7 @@ public final class Arrayard {
 	}
 
 	/**
-	 * 获取数组值
+	 * 获取数组值 序号不存在返回 <code>null</code>
 	 * @param array 数组
 	 * @param index 序号
 	 * @param cls 值类型
@@ -338,7 +338,7 @@ public final class Arrayard {
 	}
 
 	/**
-	 * 获取数组值
+	 * 获取数组值 序号不存在返回 <code>null</code>
 	 * @param array 数组
 	 * @param index 序号
 	 * @return 数组值
