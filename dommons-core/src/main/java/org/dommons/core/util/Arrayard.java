@@ -451,6 +451,7 @@ public final class Arrayard {
 		if (array != null) {
 			if (array instanceof Collection) return ((Collection) array).size();
 			else if (array.getClass().isArray()) return Array.getLength(array);
+			else if (array instanceof Map) return ((Map) array).size();
 		}
 		return 0;
 	}
