@@ -190,7 +190,7 @@ abstract class AbstractCrontabs implements Crontabs {
 				lock.unlock();
 			}
 		}
-		return false;
+		return true;
 	}
 
 	/**
