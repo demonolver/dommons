@@ -29,6 +29,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 
 	/** 缓存 */
 	final static Numeric[] cache = { zero, one };
+	final static int d_scale = 12;
 
 	/**
 	 * 取正数
@@ -173,7 +174,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 			if (d == 0) return 0;
 			n = n.multiply(d);
 		}
-		return n.round(8);
+		return n.round(d_scale);
 	}
 
 	/**
@@ -248,7 +249,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 			if (equals(zero, n)) return zero;
 			x = x.multiply(n);
 		}
-		return valueOf(x.r(8));
+		return valueOf(x.r(d_scale));
 	}
 
 	/**
@@ -261,7 +262,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		Numeric n = zero;
 		for (double d : ds)
 			n = n.add(d);
-		return n.round(8);
+		return n.round(d_scale);
 	}
 
 	/**
@@ -274,7 +275,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		Numeric x = zero;
 		for (Number n : ns)
 			x = x.add(n);
-		return valueOf(x.r(8));
+		return valueOf(x.r(d_scale));
 	}
 
 	/**
@@ -375,7 +376,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		if (num == null) return null;
 		if (num instanceof Numeric) num = ((Numeric) num).dec;
 		else if (num instanceof Double || num instanceof Float) num = Numeric.valueOf(num).dec;
-		if (num instanceof BigDecimal) return r((BigDecimal) num, 8).doubleValue();
+		if (num instanceof BigDecimal) return r((BigDecimal) num, d_scale).doubleValue();
 		else return num.doubleValue();
 	}
 
@@ -385,7 +386,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 数字对象
 	 */
 	static Numeric numeric(BigDecimal d) {
-		return new Numeric(d);
+		return new Numeric(r(d, d_scale));
 	}
 
 	/**
@@ -573,7 +574,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	public Numeric multiply(double val) {
-		return valueOf(dec.multiply(BigDecimal.valueOf(val)));
+		return valueOf(dec.multiply(valueOf(val).dec));
 	}
 
 	/**
@@ -677,7 +678,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	protected Numeric divide(BigDecimal other) {
-		return valueOf(dec.divide(other, new MathContext(Math.max(0, dec.precision() - dec.scale() + 8), RoundingMode.HALF_UP)));
+		return valueOf(dec.divide(other, new MathContext(Math.max(0, dec.precision() - dec.scale() + d_scale), RoundingMode.HALF_UP)));
 	}
 
 	/**
