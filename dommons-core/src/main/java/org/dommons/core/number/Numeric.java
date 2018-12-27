@@ -249,7 +249,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 			if (equals(zero, n)) return zero;
 			x = x.multiply(n);
 		}
-		return valueOf(x.r(d_scale));
+		return valueOf(x.dec);
 	}
 
 	/**
@@ -275,7 +275,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		Numeric x = zero;
 		for (Number n : ns)
 			x = x.add(n);
-		return valueOf(x.r(d_scale));
+		return valueOf(x.dec);
 	}
 
 	/**
