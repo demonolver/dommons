@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,16 +63,7 @@ public final class Arrayard {
 	 * @return 新数组
 	 */
 	public static <T> T[] asArray(Object array, Class<T> componentType) {
-		if (array == null) return null;
-		if (!array.getClass().isArray()) array = new Object[] { array };
-		if (componentType == null) componentType = (Class<T>) Object.class;
-		int len = length(array);
-		Object ta = Array.newInstance(componentType, len);
-		for (int i = 0; i < len; i++) {
-			T t = Converter.P.convert(get(array, i), componentType);
-			set(ta, i, t);
-		}
-		return (T[]) ta;
+		return (T[]) asArray(componentType, array);
 	}
 
 	/**
@@ -163,6 +155,28 @@ public final class Arrayard {
 	 */
 	public static <T> List<T> asList(T... array) {
 		return toList(array);
+	}
+
+	/**
+	 * 将对象转换为数组
+	 * @param obj 对象
+	 * @param componentType 元素目标类型
+	 * @return 数组
+	 */
+	public static <A> A castArray(Object obj, Class componentType) {
+		if (componentType == null) componentType = Object.class;
+		if (obj == null) {
+			return null;
+		} else if (Collection.class.isInstance(obj)) {
+			return (A) toArray(componentType, Collection.class.cast(obj));
+		} else if (obj.getClass().isArray()) {
+			if (componentType.isAssignableFrom(obj.getClass().getComponentType())) return (A) obj;
+			else return (A) asArray(componentType, obj);
+		} else if (componentType.isPrimitive()) {
+			return castArray(Collections.singleton(obj), componentType);
+		} else {
+			return (A) Arrayard.asArray(obj, componentType);
+		}
 	}
 
 	/**
@@ -546,25 +560,7 @@ public final class Arrayard {
 	public static void set(Object array, int index, Object value) {
 		if (array == null || !array.getClass().isArray()) return;
 		Class type = array.getClass().getComponentType();
-		if (int.class.equals(type)) {
-			Array.setInt(array, index, Converter.P.convert(value, int.class).intValue());
-		} else if (short.class.equals(type)) {
-			Array.setShort(array, index, Converter.P.convert(value, short.class).shortValue());
-		} else if (long.class.equals(type)) {
-			Array.setLong(array, index, Converter.P.convert(value, long.class).longValue());
-		} else if (byte.class.equals(type)) {
-			Array.setByte(array, index, Converter.P.convert(value, byte.class).byteValue());
-		} else if (boolean.class.equals(type)) {
-			Array.setBoolean(array, index, Converter.P.convert(value, boolean.class).booleanValue());
-		} else if (double.class.equals(type)) {
-			Array.setDouble(array, index, Converter.P.convert(value, double.class).doubleValue());
-		} else if (float.class.equals(type)) {
-			Array.setFloat(array, index, Converter.P.convert(value, float.class).floatValue());
-		} else if (char.class.equals(type)) {
-			Array.setChar(array, index, Converter.P.convert(value, char.class).charValue());
-		} else {
-			Array.set(array, index, value);
-		}
+		set(array, index, value, type);
 	}
 
 	/**
@@ -669,6 +665,25 @@ public final class Arrayard {
 	}
 
 	/**
+	 * 转换数组
+	 * @param componentType 目标子元素类型
+	 * @param array 数组
+	 * @return 结果数组
+	 */
+	protected static Object asArray(Class componentType, Object array) {
+		if (array == null) return null;
+		if (!array.getClass().isArray()) array = new Object[] { array };
+		if (componentType == null) componentType = Object.class;
+		int len = length(array);
+		Object ta = Array.newInstance(componentType, len);
+		for (int i = 0; i < len; i++) {
+			Object t = Converter.P.convert(get(array, i), componentType);
+			set(ta, i, t, componentType);
+		}
+		return ta;
+	}
+
+	/**
 	 * 导入内容
 	 * @param obj 内容对象
 	 * @param buffer 字符缓冲区
@@ -711,6 +726,35 @@ public final class Arrayard {
 	}
 
 	/**
+	 * 设置数组值
+	 * @param array 数组
+	 * @param index 序号
+	 * @param value 值
+	 * @param type 元素类型
+	 */
+	protected static void set(Object array, int index, Object value, Class type) {
+		if (int.class.equals(type)) {
+			Array.setInt(array, index, Converter.P.convert(value, int.class).intValue());
+		} else if (short.class.equals(type)) {
+			Array.setShort(array, index, Converter.P.convert(value, short.class).shortValue());
+		} else if (long.class.equals(type)) {
+			Array.setLong(array, index, Converter.P.convert(value, long.class).longValue());
+		} else if (byte.class.equals(type)) {
+			Array.setByte(array, index, Converter.P.convert(value, byte.class).byteValue());
+		} else if (boolean.class.equals(type)) {
+			Array.setBoolean(array, index, Converter.P.convert(value, boolean.class).booleanValue());
+		} else if (double.class.equals(type)) {
+			Array.setDouble(array, index, Converter.P.convert(value, double.class).doubleValue());
+		} else if (float.class.equals(type)) {
+			Array.setFloat(array, index, Converter.P.convert(value, float.class).floatValue());
+		} else if (char.class.equals(type)) {
+			Array.setChar(array, index, Converter.P.convert(value, char.class).charValue());
+		} else {
+			Array.set(array, index, value);
+		}
+	}
+
+	/**
 	 * 集合转数组
 	 * @param componentType 数组元素类型
 	 * @param list 数据集合
@@ -723,7 +767,7 @@ public final class Arrayard {
 		int index = 0;
 		for (Iterator it = list.iterator(); it.hasNext();) {
 			Object item = Converter.P.convert(it.next(), componentType);
-			Array.set(array, index++, item);
+			set(array, index++, item, componentType);
 		}
 		return array;
 	}
