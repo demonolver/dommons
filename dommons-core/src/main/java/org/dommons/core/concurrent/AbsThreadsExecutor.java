@@ -84,7 +84,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		synchronized (queue) {
 			run: if (runState == RUNNING) {
 				Runnable r = command;
-				if (now(r) && addWorker(r)) ;
+				if (now(r) && addWorker(r));
 				else if (queue.offer(r)) queue.notify();
 				else break run;
 				command = null;
@@ -368,14 +368,15 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 						return r;
 					}
 				}
-				if (workerCanExit()) {
-					return null;
-				} else if (state == RUNNING) {
+				if (state == RUNNING) {
 					try {
-						queue.wait(20000, 0);
+						long s = System.currentTimeMillis(), t = 30000l;
+						queue.wait(t, 0);
+						if (System.currentTimeMillis() - s < t) continue;
 					} catch (InterruptedException e) {
 					}
 				}
+				if (workerCanExit()) return null;
 			}
 		}
 	}
