@@ -48,6 +48,17 @@ public final class Arrayard {
 	}
 
 	/**
+	 * 注入元素集
+	 * @param list 集合体
+	 * @param array 数组
+	 * @return 集合体
+	 */
+	public static <E, A extends E, C extends Collection<E>> C afflux(C list, A... array) {
+		addAll(list, array);
+		return list;
+	}
+
+	/**
 	 * 将数组转换为对象数组
 	 * @param array 数组
 	 * @return 对象数组
