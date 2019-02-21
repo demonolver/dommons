@@ -4,10 +4,9 @@
 package org.dommons.core.util.thread;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.map.Mapped;
+import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.util.beans.ObjectInstantiator.ObjectCreator;
@@ -27,7 +26,7 @@ public class ThreadCache<O> {
 
 	public ThreadCache(Class<? super O> cls) {
 		this.cls = cls;
-		this.cache = new MemcacheMap(TimeUnit.HOURS.toMillis(12), TimeUnit.HOURS.toMillis(24));
+		this.cache = new ConcurrentSoftMap();
 		this.local = new ThreadLocal();
 	}
 
