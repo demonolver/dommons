@@ -16,10 +16,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.WeakHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.number.Numeric;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.thread.ThreadCache;
@@ -33,8 +34,8 @@ public class TimeFormat extends DateFormat {
 	private static final long serialVersionUID = -4740117576896394908L;
 
 	static final ThreadCache<Map<String, SimpleDateFormat>> cache = new ThreadCache(WeakHashMap.class);
-	static final Map<String, TimeFormat> models = new ConcurrentSoftMap();
-	static final Map<String, String> ps = new ConcurrentSoftMap();
+	static final Map<String, TimeFormat> models = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+	static final Map<String, String> ps = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
 	 * 编译格式串

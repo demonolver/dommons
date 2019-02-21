@@ -4,8 +4,9 @@
 package org.dommons.security.cipher;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 
 /**
  * 3DES 加密器
@@ -15,7 +16,7 @@ public class TripleCipher extends SymCipher {
 
 	static final String algorithm = "TripleDES";
 	static final byte[] default_key;
-	static final Map<byte[], TripleCipher> cache = new ConcurrentSoftMap();
+	static final Map<byte[], TripleCipher> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	static {
 		default_key = bytes("{3DES}");

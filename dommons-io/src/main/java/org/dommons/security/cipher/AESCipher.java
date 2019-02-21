@@ -6,11 +6,12 @@ package org.dommons.security.cipher;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.log.LoggerFactory;
 
 /**
@@ -21,7 +22,7 @@ public class AESCipher extends SymCipher {
 
 	static final String algorithm = "AES";
 	static final byte[] default_key;
-	static final Map<byte[], AESCipher> cache = new ConcurrentSoftMap();
+	static final Map<byte[], AESCipher> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	static {
 		default_key = bytes('{' + algorithm + '}');

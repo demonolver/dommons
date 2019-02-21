@@ -13,11 +13,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.dommons.core.Environments;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.number.Radix64;
 import org.dommons.core.string.Stringure;
@@ -30,7 +31,7 @@ import org.dommons.security.coder.Coder;
  */
 public class URLCoder implements Coder {
 
-	private static Map<String, URLCoder> ccs = new ConcurrentSoftMap();
+	private static Map<String, URLCoder> ccs = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
 	 * 解码

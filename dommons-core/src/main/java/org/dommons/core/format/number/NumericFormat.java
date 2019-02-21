@@ -11,10 +11,11 @@ import java.text.ParsePosition;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.thread.ThreadCache;
 
@@ -28,7 +29,7 @@ public class NumericFormat extends NumberFormat {
 
 	static final ThreadCache<Map<NumericFormat, DecimalFormat>> cache = new ThreadCache(WeakHashMap.class);
 
-	static final Map<String, NumericFormat> modelCache = new ConcurrentSoftMap();
+	static final Map<String, NumericFormat> modelCache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/** 货币符 */
 	public static final char currency = '\u00A4';

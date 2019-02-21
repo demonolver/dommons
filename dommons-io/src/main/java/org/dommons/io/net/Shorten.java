@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.queue.TreeQueue;
 import org.dommons.core.number.Radix64.Radix64Digits;
 import org.dommons.core.string.Stringure;
@@ -25,7 +26,7 @@ import org.dommons.security.cipher.MD5Cipher;
  */
 public class Shorten extends Radix64Digits {
 
-	private static final Map<CharSequence, CharSequence> shorts = new ConcurrentSoftMap();
+	private static final Map<CharSequence, CharSequence> shorts = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 	private static final Charset cs = Stringure.charset(true, "utf8", "gbk", "iso-8859-1");
 
 	/**

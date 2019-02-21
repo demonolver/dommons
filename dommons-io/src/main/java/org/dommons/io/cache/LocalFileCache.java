@@ -5,9 +5,10 @@ package org.dommons.io.cache;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.cache.DataCache;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Arrayard;
@@ -26,7 +27,7 @@ public class LocalFileCache implements DataCache<String, String> {
 	public LocalFileCache(File file) {
 		if (file == null) file = Pathfinder.cacheFile(UniQueness.generateHexUUID().toLowerCase());
 		this.disk = new DiskStore(file);
-		this.tmp = new ConcurrentSoftMap();
+		this.tmp = new MemcacheMap(TimeUnit.HOURS.toMillis(1), TimeUnit.HOURS.toMillis(12));
 	}
 
 	public LocalFileCache(String path) {

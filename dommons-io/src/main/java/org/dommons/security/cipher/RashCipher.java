@@ -4,9 +4,10 @@
 package org.dommons.security.cipher;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.Assertor;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.number.Radix64;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Randoms;
@@ -22,7 +23,7 @@ public class RashCipher implements Cipher {
 	/** 默认密钥 */
 	private static final String DEFAULT_KEY = "c#E";
 
-	static final Map<String, RashCipher> cache = new ConcurrentSoftMap();
+	static final Map<String, RashCipher> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
 	 * 获取加密工具实例

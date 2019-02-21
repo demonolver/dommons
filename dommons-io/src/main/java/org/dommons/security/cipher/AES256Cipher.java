@@ -4,13 +4,14 @@
 package org.dommons.security.cipher;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.dommons.core.Environments;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
 import org.dommons.security.coder.B64Coder;
@@ -22,7 +23,7 @@ import org.dommons.security.coder.B64Coder;
 public class AES256Cipher implements org.dommons.security.cipher.Cipher {
 
 	static final byte[] default_key;
-	static final Map<byte[], AES256Cipher> cache = new ConcurrentSoftMap();
+	static final Map<byte[], AES256Cipher> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	static {
 		default_key = bytes("{AES}");

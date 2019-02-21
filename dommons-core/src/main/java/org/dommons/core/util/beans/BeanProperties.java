@@ -14,9 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.Silewarner;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.util.Arrayard;
 
@@ -26,7 +27,7 @@ import org.dommons.core.util.Arrayard;
  */
 public final class BeanProperties {
 
-	static Map<Class, BeanProperty[]> cache = new ConcurrentSoftMap();
+	static Map<Class, BeanProperty[]> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
 	 * 克隆数据

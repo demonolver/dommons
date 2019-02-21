@@ -13,9 +13,11 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.map.Mapped;
 import org.dommons.core.collections.map.ci.CaseInsensitiveHashMap;
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
@@ -34,7 +36,7 @@ import org.dommons.io.prop.Bundles;
  */
 class NLSBundle {
 
-	static Map<String, NLSBundle> bs = new ConcurrentSoftMap();
+	static Map<String, NLSBundle> bs = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 	static Ref<Map<String, String>> dref;
 	static Map<String, Collection<String>> dls = new ConcurrentSoftMap();
 

@@ -4,8 +4,9 @@
 package org.dommons.log;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 
 /**
  * 日志工厂
@@ -14,7 +15,7 @@ import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 public abstract class LoggerFactory {
 
 	private static LoggerFactory instance;
-	private static final Map<Object, LoggerWrapper> wrappers = new ConcurrentSoftMap();
+	private static final Map<Object, LoggerWrapper> wrappers = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
 	 * 获取工厂实例
@@ -53,7 +54,7 @@ public abstract class LoggerFactory {
 	 * 构造函数
 	 */
 	protected LoggerFactory() {
-		cache = new ConcurrentSoftMap();
+		cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 		instance = this;
 	}
 

@@ -5,8 +5,9 @@ package org.dommons.io.message;
 
 import java.text.ParseException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.format.text.MessageFormat;
 
 /**
@@ -21,7 +22,7 @@ public abstract class AbstractMessages implements Messages {
 	 * 构造函数
 	 */
 	protected AbstractMessages() {
-		cache = new ConcurrentSoftMap();
+		cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 	}
 
 	public String getMessage(String key, Object... arguments) {

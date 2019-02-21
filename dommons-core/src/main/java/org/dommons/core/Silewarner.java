@@ -6,10 +6,11 @@ package org.dommons.core;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.string.Stringure;
 
 /**
@@ -172,7 +173,11 @@ public final class Silewarner {
 			if (h != null) return h;
 			Object logger = getLogger(cls);
 			if (logger == null) return null;
-			if (cache == null) cache = new ConcurrentSoftMap();
+			if (cache == null) {
+				synchronized (Log4jHandler.cache) {
+					if (cache == null) cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+				}
+			}
 			cache.put(cls, h = new Log4jHandler(logger));
 			return h;
 		}
@@ -260,7 +265,11 @@ public final class Silewarner {
 			if (h != null) return h;
 			Object logger = logger(cls);
 			if (logger == null) return null;
-			if (cache == null) cache = new ConcurrentSoftMap();
+			if (cache == null) {
+				synchronized (LoggerFactoryHandler.class) {
+					if (cache == null) cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+				}
+			}
 			cache.put(cls, h = new LoggerFactoryHandler(logger));
 			return h;
 		}

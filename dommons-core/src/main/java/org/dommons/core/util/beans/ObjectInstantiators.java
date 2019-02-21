@@ -19,10 +19,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.map.ci.CaseInsensitiveHashMap;
 import org.dommons.core.collections.map.ci.CaseInsensitiveMap;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 import org.dommons.core.collections.stack.LinkedStack;
 import org.dommons.core.collections.stack.Stack;
 import org.dommons.core.convert.Converter;
@@ -37,8 +38,9 @@ import org.dommons.core.string.Stringure;
  */
 public class ObjectInstantiators {
 
-	private static final Map<Class, Ref<Constructor>> cmap = new ConcurrentSoftMap();
-	private static final Map<Class, org.dommons.core.util.beans.ObjectInstantiator> imap = new ConcurrentSoftMap();
+	private static final Map<Class, Ref<Constructor>> cmap = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+	private static final Map<Class, org.dommons.core.util.beans.ObjectInstantiator> imap = new MemcacheMap(TimeUnit.HOURS.toMillis(3),
+			TimeUnit.HOURS.toMillis(24));
 
 	private static Ref<ClassObjectInstantiator> iref;
 
@@ -214,7 +216,7 @@ public class ObjectInstantiators {
 			super();
 			lmethod = method("lookupAny", Class.class);
 			method = method("newInstance", Class.class);
-			map = new ConcurrentSoftMap();
+			map = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 		}
 
 		public <O> O newInstance(Class clazz) {
@@ -249,7 +251,7 @@ public class ObjectInstantiators {
 		public DefaultObjectInstantiator() {
 			super();
 			method = method("newInstance");
-			map = new ConcurrentSoftMap();
+			map = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 		}
 
 		public <O> O newInstance(Class clazz) {
