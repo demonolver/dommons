@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.cache.MemcacheMap;
+import org.dommons.security.coder.B64Coder;
 
 /**
  * 3DES 加密器
@@ -16,7 +17,7 @@ public class TripleCipher extends SymCipher {
 
 	static final String algorithm = "TripleDES";
 	static final byte[] default_key;
-	static final Map<byte[], TripleCipher> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+	static final Map<String, TripleCipher> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	static {
 		default_key = bytes("{3DES}");
@@ -28,8 +29,9 @@ public class TripleCipher extends SymCipher {
 	 * @return 加密器
 	 */
 	public static TripleCipher instance(byte... key) {
-		TripleCipher triple = cache.get(key);
-		if (triple == null) cache.put(key, triple = new TripleCipher(key));
+		String k = B64Coder.encodeBuffer(key);
+		TripleCipher triple = cache.get(k);
+		if (triple == null) cache.put(k, triple = new TripleCipher(key));
 		return triple;
 	}
 
