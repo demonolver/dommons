@@ -106,7 +106,10 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	 * @return 缓存值
 	 */
 	protected V value(CacheItem item, boolean b, Object key) {
-		if (!WeakHashMap.class.isInstance(map)) MemCleanThread.add(this.k, this);
+		try {
+			if (!WeakHashMap.class.isInstance(map)) MemCleanThread.add(this.k, this);
+		} catch (Throwable t) {
+		}
 		if (item != null && (!b || item.active())) {
 			return item.get();
 		} else {
