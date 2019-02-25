@@ -164,7 +164,7 @@ public final class Environments {
 					return null;
 				}
 			});
-			return Converter.F.convert(v, double.class);
+			if (v != null) return Converter.F.convert(v, double.class);
 		}
 		return 0;
 	}
