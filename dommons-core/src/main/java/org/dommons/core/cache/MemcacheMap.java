@@ -107,7 +107,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	 */
 	protected V value(CacheItem item, boolean b, Object key) {
 		try {
-			if (!WeakHashMap.class.isInstance(map)) MemCleanThread.add(this.k, this);
+			if (!WeakHashMap.class.isInstance(map)) MemClean.add(this.k, this);
 		} catch (Throwable t) {
 		}
 		if (item != null && (!b || item.active())) {
@@ -202,14 +202,10 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	}
 
 	/**
-	 * 缓存内存清理
-	 * @author demon 2017-09-12
+	 * 缓存清理
+	 * @author demon 2019-02-25
 	 */
-	protected static class MemCleanThread implements Runnable, NotificationListener {
-
-		static MemCleanThread t;
-		static long limit = 5;// TimeUnit.MINUTES.toMillis(5);
-
+	protected static class MemClean {
 		/**
 		 * 添加缓存
 		 * @param key 键值
@@ -217,11 +213,21 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		 */
 		public static void add(Object key, MemcacheMap map) {
 			try {
-				MemCleanThread ct = t();
+				MemCleanThread ct = MemCleanThread.t();
 				if (ct != null && ct.cs != null && !ct.cs.containsKey(key)) ct.cs.put(key, map);
 			} catch (Throwable t) { // ignored
 			}
 		}
+	}
+
+	/**
+	 * 缓存内存清理
+	 * @author demon 2017-09-12
+	 */
+	protected static class MemCleanThread implements Runnable, NotificationListener {
+
+		static MemCleanThread t;
+		static long limit = 5;// TimeUnit.MINUTES.toMillis(5);
 
 		/**
 		 * 获取清理器实例
