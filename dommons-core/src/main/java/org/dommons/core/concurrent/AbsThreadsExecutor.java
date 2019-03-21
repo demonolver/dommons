@@ -295,12 +295,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	/**
 	 * 响应执行器关闭
 	 */
-	protected void terminated() {
-		System.out.println("term");
-		synchronized (queue) {
-			queue.notifyAll();
-		}
-	}
+	protected void terminated() {}
 
 	/**
 	 * 获取待处理任务数
@@ -393,7 +388,6 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 					try {
 						long s = System.currentTimeMillis(), t = 30000l;
 						queue.wait(t, 0);
-						System.out.println(System.currentTimeMillis() - s);
 						if (System.currentTimeMillis() - s < t && state == runState) continue;
 					} catch (InterruptedException e) {
 					}
@@ -443,6 +437,10 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 				termination.signalAll();
 				terminated();
 			}
+		} else {
+			synchronized (queue) {
+				queue.notifyAll();
+			}
 		}
 	}
 
@@ -455,7 +453,9 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		mainLock.lock();
 		boolean canExit;
 		try {
-			canExit = runState >= STOP || poolSize > queue.size();
+			int size = queue.size();
+			if (runState == RUNNING) size = Math.max(size, minSize());
+			canExit = runState >= STOP || poolSize > size;
 		} finally {
 			mainLock.unlock();
 		}
