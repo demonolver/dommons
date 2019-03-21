@@ -372,9 +372,9 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 */
 	Runnable getTask() {
 		for (;;) {
+			int state = runState;
+			if (state > SHUTDOWN) return null;
 			synchronized (queue) {
-				int state = runState;
-				if (state > SHUTDOWN) return null;
 				Iterator<Runnable> it = queue.iterator();
 				for (; it.hasNext();) {
 					Runnable r = it.next();
@@ -384,16 +384,18 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 						return r;
 					}
 				}
-				if (state == RUNNING) {
-					try {
-						long s = System.currentTimeMillis(), t = 30000l;
-						queue.wait(t, 0);
-						if (System.currentTimeMillis() - s < t && state == runState) continue;
-					} catch (InterruptedException e) {
-					}
-				}
-				if (workerCanExit()) return null;
 			}
+			if (state == RUNNING) {
+				try {
+					long s = System.currentTimeMillis(), t = 30000l;
+					synchronized (queue) {
+						queue.wait(t, 0);
+					}
+					if (System.currentTimeMillis() - s < t && state == runState) continue;
+				} catch (InterruptedException e) {
+				}
+			}
+			if (workerCanExit()) return null;
 		}
 	}
 
