@@ -209,6 +209,14 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	protected abstract int maxSize();
 
 	/**
+	 * 获取最小保有线程数
+	 * @return 最小保有线程数
+	 */
+	protected int minSize() {
+		return 1;
+	}
+
+	/**
 	 * 获取当前线程池大小
 	 * @return 线程池大小
 	 */
@@ -433,7 +441,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		mainLock.lock();
 		boolean canExit;
 		try {
-			canExit = runState >= STOP || poolSize > queue.size();
+			canExit = runState >= STOP || poolSize > Math.max(queue.size(), minSize());
 		} finally {
 			mainLock.unlock();
 		}
