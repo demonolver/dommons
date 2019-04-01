@@ -30,6 +30,19 @@ public final class BeanProperties {
 	static Map<Class, BeanProperty[]> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
+	 * 对象子类型适配
+	 * @param tar 对象实例
+	 * @param cls 类型
+	 * @return 目标类型实例 非子类返回<code>null</code>
+	 */
+	public static <P, T extends P> T cast(P tar, Class<T> cls) {
+		if (tar == null || cls == null) return (T) tar;
+		else if (cls.isInstance(tar)) return cls.cast(tar);
+		else if (tar.getClass().isAssignableFrom(cls)) return BeanProperties.newInstance(cls, tar);
+		else return null;
+	}
+
+	/**
 	 * 克隆数据
 	 * @param obj 数据对象
 	 * @return 新数据对象
