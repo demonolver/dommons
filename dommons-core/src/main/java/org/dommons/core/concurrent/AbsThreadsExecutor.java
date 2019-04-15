@@ -563,8 +563,16 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		}
 	}
 
+	/**
+	 * 线程上下文访问器
+	 * @author demon 2019-04-15
+	 */
 	protected static final class Local extends ThreadLocals {
 
+		/**
+		 * 获取线程上下文内容
+		 * @return 上下文内容
+		 */
 		public static Object get() {
 			try {
 				return field().get(Thread.currentThread());
@@ -574,6 +582,10 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 			}
 		}
 
+		/**
+		 * 设置线程上下文内容
+		 * @param local 上下文内容
+		 */
 		public static void set(Object local) {
 			try {
 				field().set(Thread.currentThread(), local);
