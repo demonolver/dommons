@@ -46,8 +46,8 @@ public class ProxyFactory {
 	 */
 	public static <O> O newInstance(InvocationHandler h, Class sc, Class... interfaces) {
 		if (h == null) return null;
-		if (existClass("net.sf.cglib.proxy.Enhancer")) return CglibProxy.create(h, sc, interfaces);
-		else if (existClass("org.springframework.cglib.proxy.Enhancer")) return SpringProxy.create(h, sc, interfaces);
+		if (existClass("org.springframework.cglib.proxy.Enhancer")) return SpringProxy.create(h, sc, interfaces);
+		else if (existClass("net.sf.cglib.proxy.Enhancer")) return CglibProxy.create(h, sc, interfaces);
 		else if (sc != null) throw new UnsupportedOperationException("unable to create proxy with super class");
 		else if (Arrayard.isEmpty(interfaces)) return null;
 		else return (O) Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces, h);
