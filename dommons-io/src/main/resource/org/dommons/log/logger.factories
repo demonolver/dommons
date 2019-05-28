@@ -4,7 +4,7 @@ log4j.target = org.apache.log4j.spi.RootLogger
 log4j.class = org.dommons.log.log4j.Log4jFactory
 log4j.exclude = org.apache.log4j.Log4jLoggerFactory
 
-logging.target = org.apache.commons.logging.Log
+logging.target = org.apache.commons.logging.LogFactory
 logging.class = org.dommons.log.logging.CommonLogFactory
 
 jdk.class = org.dommons.log.jdklog.JDKLogFactory
