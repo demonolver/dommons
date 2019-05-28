@@ -34,7 +34,11 @@ public class ClassesScanner {
 	 * @param error 扫描异常监听器
 	 */
 	public static void startScan(
-			String base, ClassLoader cl, ClassScanFilter filter, ClassScanListener listener, ClassErrorListener error) {
+			String base,
+			ClassLoader cl,
+			ClassScanFilter filter,
+			ClassScanListener listener,
+			ClassErrorListener error) {
 		base = Stringure.trim(base);
 		if (base.isEmpty()) return;
 		new ClassesScanner(base, cl).classScanFilter(filter).scan(listener, error);
@@ -191,7 +195,7 @@ public class ClassesScanner {
 		if (filter != null && filter.onFilter(cls)) return null;
 		try {
 			return Class.forName(cls, false, cl);
-		} catch (ClassNotFoundException e) { // ignored
+		} catch (Throwable t) { // ignored
 		}
 		return null;
 	}

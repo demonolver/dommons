@@ -211,11 +211,11 @@ final class ConverterMap {
 	private static Class findClass(String className) {
 		try {
 			return Class.forName(className, false, ConverterMap.class.getClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		try {
 			return Class.forName(className, false, Thread.currentThread().getContextClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		return null;
 	}

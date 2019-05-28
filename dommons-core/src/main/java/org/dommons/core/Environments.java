@@ -97,11 +97,11 @@ public final class Environments {
 	public static Class findClass(String name) {
 		try {
 			return Class.forName(name, false, Environments.class.getClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		try {
 			return Class.forName(name, false, Thread.currentThread().getContextClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		return null;
 	}

@@ -32,7 +32,7 @@ public class ProxyFactory {
 	public static Class findClass(String cls, ClassLoader loader) {
 		try {
 			return Class.forName(cls, false, loader);
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 			return null;
 		}
 	}

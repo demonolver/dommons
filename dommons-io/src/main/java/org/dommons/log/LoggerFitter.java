@@ -71,12 +71,14 @@ class LoggerFitter {
 	static Class findClass(String className) throws ClassNotFoundException {
 		try {
 			return Class.forName(className, false, LoggerFitter.class.getClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		try {
 			return Class.forName(className, false, Thread.currentThread().getContextClassLoader());
 		} catch (ClassNotFoundException e) {
 			throw e;
+		} catch (Throwable t) {
+			return null;
 		}
 	}
 }
