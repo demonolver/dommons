@@ -150,6 +150,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 	 */
 	private Number parseString(String str) {
 		str = Stringure.trim(str);
+		if ("null".equals(str)) return null;
 		try {
 			Locale l = Environments.defaultLocale();
 			for (StringNumeric sn : formats) {

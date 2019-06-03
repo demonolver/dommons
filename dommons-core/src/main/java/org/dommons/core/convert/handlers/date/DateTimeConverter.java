@@ -129,6 +129,7 @@ abstract class DateTimeConverter<T> extends AbstractLocaleConverter implements C
 			date = new Date(((Number) obj).longValue());
 		} else { // 转换为字符串，按常用时间格式转换
 			String stringValue = String.valueOf(obj);
+			if ("null".equals(stringValue)) return null;
 			for (Entry<Pattern, DateFormat> en : map.entrySet()) {
 				Pattern pattern = en.getKey();
 				Matcher matcher = pattern.matcher(stringValue);
