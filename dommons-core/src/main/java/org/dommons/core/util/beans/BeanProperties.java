@@ -242,7 +242,9 @@ public final class BeanProperties {
 			Throwable tt = null;
 			try {
 				Object v = rm.invoke(src);
-				wm.invoke(tar, Converter.P.convert(v, wm.getParameterTypes()[0]));
+				Class wt = wm.getParameterTypes()[0];
+				if (v == null && wt.isPrimitive()) continue;
+				wm.invoke(tar, Converter.P.convert(v, wt));
 			} catch (InvocationTargetException e) {
 				tt = e.getTargetException();
 			} catch (Throwable t) {
