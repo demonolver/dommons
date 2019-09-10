@@ -236,6 +236,15 @@ public class ShowableConnection extends EssentialConnection {
 	}
 
 	/**
+	 * 生成唯一键值
+	 * @param connectID 连接ID
+	 * @return 键值
+	 */
+	protected String unique(String connectID) {
+		return connectID;
+	}
+
+	/**
 	 * 是否支持游标移动
 	 * @return 是、否
 	 */
@@ -248,7 +257,7 @@ public class ShowableConnection extends EssentialConnection {
 	 * @param msg 信息
 	 */
 	void trace(NLSItem msg) {
-		logger.trace(msg, name, connectID);
+		logger.trace(msg, name, unique(connectID));
 	}
 
 	/**
@@ -257,6 +266,6 @@ public class ShowableConnection extends EssentialConnection {
 	 * @param t 异常
 	 */
 	void warn(NLSItem msg, Throwable t) {
-		logger.warn(msg, name, connectID, t == null ? Stringure.empty : t.toString());
+		logger.warn(msg, name, unique(connectID), t == null ? Stringure.empty : t.toString());
 	}
 }
