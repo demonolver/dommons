@@ -299,16 +299,17 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 		String s = String.valueOf(sql);
 		if (!s.endsWith(";")) s += ';';
 
+		String connectID = conn.unique(conn.connectID);
 		if (se == null) {
 			int r = Converter.F.convert(result, int.class);
 			if (time < time_limit && r < count_limit) {
-				ShowableConnection.logger.debug(JDBCMessages.m.sql_execute_success(), conn.name, conn.connectID, s, result, time);
+				ShowableConnection.logger.debug(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, time);
 			} else {
-				ShowableConnection.logger.info(JDBCMessages.m.sql_execute_success(), conn.name, conn.connectID, s, result, time);
+				ShowableConnection.logger.info(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, time);
 			}
 		} else {
-			ShowableConnection.logger.warn(JDBCMessages.m.sql_execute_error(), conn.name, conn.connectID, s, se.getErrorCode(),
-				se.getSQLState(), se.getMessage());
+			ShowableConnection.logger.warn(JDBCMessages.m.sql_execute_error(), conn.name, connectID, s, se.getErrorCode(), se.getSQLState(),
+				se.getMessage(), time);
 		}
 	}
 
