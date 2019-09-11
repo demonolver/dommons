@@ -22,7 +22,7 @@ abstract class PreparedParameter {
 	 * @return Base64 串
 	 */
 	static String base4(byte[] bs) {
-		return "from_base64('" + B64Coder.encodeBuffer(bs) + ')';
+		return "from_base64(\'" + B64Coder.encodeBuffer(bs) + "\')";
 	}
 
 	/**
@@ -128,7 +128,7 @@ abstract class PreparedParameter {
 					SQLFormatter.appendString(s, buf);
 					buf.append('\'');
 				} else {
-					SQLFormatter.appendString(base4(bs), buf);
+					buf.append(base4(bs));
 				}
 			} else {
 				SQLFormatter.appendString(toString(String.class), buf);
