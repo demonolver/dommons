@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
+import org.dommons.core.Silewarner;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
 import org.dommons.io.prop.Bundles;
@@ -246,6 +247,7 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 			return r;
 		} catch (SQLException e) {
 			se = e;
+			time = System.currentTimeMillis() - time;
 			throw transform(e, sql);
 		} finally {
 			if (se == null && r instanceof Boolean) {
@@ -279,7 +281,7 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 				try {
 					if (rs != null) rs.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					Silewarner.warn(ShowableConnection.class, "connection close", e);
 				}
 			}
 			last = null;
