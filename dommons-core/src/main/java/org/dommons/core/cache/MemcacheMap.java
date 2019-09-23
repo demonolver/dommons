@@ -47,7 +47,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		this(null, timeout, max);
 	}
 
-	public MemcacheMap(Map<K, Object> map, long timeout, long max) {
+	public MemcacheMap(Map<?, ?> map, long timeout, long max) {
 		this.map = map == null ? new ConcurrentSoftMap() : (Map) map;
 		this.timeout = (timeout <= 0L ? 5000L : timeout);
 		this.max = (max < this.timeout ? this.timeout : max);
