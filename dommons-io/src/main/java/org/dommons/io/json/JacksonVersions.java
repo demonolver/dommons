@@ -17,15 +17,13 @@ class JacksonVersions {
 	protected static PropertyNamingStrategyBase snake() {
 		try {
 			return (PropertyNamingStrategyBase) PropertyNamingStrategy.SNAKE_CASE;
-		} catch (Throwable t) {
-			t.printStackTrace();
+		} catch (Throwable t) { // ignored
 		}
 		try {
-			return ObjectInstantiators
-					.newInstance(Class.forName("com.fasterxml.jackson.databind.PropertyNamingStrategy$LowerCaseWithUnderscoresStrategy",
-						false, PropertyNamingStrategy.class.getClassLoader()));
+			Class cls = Class.forName("com.fasterxml.jackson.databind.PropertyNamingStrategy$LowerCaseWithUnderscoresStrategy", false,
+				PropertyNamingStrategy.class.getClassLoader());
+			return ObjectInstantiators.newInstance(cls);
 		} catch (Throwable t) {
-			t.printStackTrace();
 			return null;
 		}
 	}
