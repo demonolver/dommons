@@ -420,7 +420,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 数字值
 	 */
 	static BigDecimal r(BigDecimal d, int s, Boolean up) {
-		if (d.scale() == s) return d;
+		if (d.scale() <= s) return d;
 		int rm = BigDecimal.ROUND_HALF_UP;
 		if (up != null) rm = up ? BigDecimal.ROUND_UP : BigDecimal.ROUND_DOWN;
 		return d.setScale(s, rm).stripTrailingZeros();
@@ -432,7 +432,12 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 数学对象
 	 */
 	private static BigDecimal decimal(double val) {
-		return r(new BigDecimal(val), d_scale);
+		BigDecimal d1 = new BigDecimal(val);
+		if (d1.scale() > 6) {
+			BigDecimal d2 = BigDecimal.valueOf(val);
+			if (d2.scale() < d1.scale()) return r(d2, d_scale);
+		}
+		return d1;
 	}
 
 	private transient BigDecimal dec;
