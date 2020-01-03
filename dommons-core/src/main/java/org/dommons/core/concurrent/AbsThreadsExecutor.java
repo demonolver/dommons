@@ -623,6 +623,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 */
 	protected final class Worker implements Runnable {
 
+		final long s;
 		Runnable cTask;
 		Thread thread;
 
@@ -630,15 +631,19 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 
 		public Worker(Runnable task) {
 			this.cTask = task;
+			this.s = System.currentTimeMillis() + TimeUnit.HOURS.toHours(8);
 		}
 
 		public void run() {
 			try {
 				Runnable task = cTask;
 				cTask = null;
-				while (task != null || (task = getTask()) != null) {
-					runTask(task);
-					task = null;
+				for (; runState == RUNNING;) {
+					while (task != null || (task = getTask()) != null) {
+						runTask(task);
+						task = null;
+					}
+					if (System.currentTimeMillis() >= s) break;
 				}
 			} finally {
 				workerDone(this);
