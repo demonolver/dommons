@@ -631,7 +631,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 
 		public Worker(Runnable task) {
 			this.cTask = task;
-			this.s = System.currentTimeMillis() + TimeUnit.HOURS.toHours(8);
+			this.s = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(8);
 		}
 
 		public void run() {
