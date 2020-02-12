@@ -238,6 +238,15 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	}
 
 	/**
+	 * 取负数
+	 * @param d 数值
+	 * @return 负值
+	 */
+	public static double negate(double d) {
+		return Numeric.valueOf(d).negate().round(d_scale);
+	}
+
+	/**
 	 * 计算乘积
 	 * @param ns 数值集
 	 * @return 数值
