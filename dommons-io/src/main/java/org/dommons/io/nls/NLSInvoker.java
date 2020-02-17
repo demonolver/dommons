@@ -42,7 +42,7 @@ class NLSInvoker implements InvocationHandler {
 	 * @return 信息
 	 */
 	protected Object message(Class rt, String key, Object... args) {
-		Locale l = NLSLocal.get();
+		Locale l = null;
 		Object[] ps = null;
 		if (args != null && args.length > 0) {
 			int s = 0;
