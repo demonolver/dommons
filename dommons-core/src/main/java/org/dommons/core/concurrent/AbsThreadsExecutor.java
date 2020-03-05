@@ -47,9 +47,10 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	private final ReentrantLock mainLock;
 	private final Condition termination;
 	private final AtomicInteger working;
+	private final AtomicInteger wcount;
 
 	volatile int runState;
-	volatile int poolSize;
+	// volatile int poolSize;
 	Collection<Worker> workers;
 	Collection<Thread> threads;
 
@@ -65,6 +66,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		this.mainLock = new ReentrantLock();
 		this.termination = mainLock.newCondition();
 		this.working = new AtomicInteger(0);
+		this.wcount = new AtomicInteger(0);
 	}
 
 	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
@@ -224,7 +226,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 * @return 线程池大小
 	 */
 	protected int poolSize() {
-		return poolSize;
+		return workers.size();
 	}
 
 	/**
@@ -335,15 +337,11 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 			w.thread = t;
 			threads.add(t);
 			workers.add(w);
-			++poolSize;
 			try {
 				t.start();
 				workerStarted = true;
 			} finally {
-				if (!workerStarted) {
-					workers.remove(w);
-					--poolSize;
-				}
+				if (!workerStarted) workers.remove(w);
 			}
 		}
 		return t;
@@ -359,8 +357,8 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		final Lock lock = this.mainLock;
 		lock.lock();
 		try {
-			int s = maxSize();
-			if ((poolSize < s || poolSize < 1) && runState == RUNNING && poolSize >= workingCount()) t = addThread(r);
+			int s = maxSize(), ps = workers.size();
+			if ((ps < s || ps < 1) && runState == RUNNING && wcount.get() <= workingCount()) t = addThread(r);
 		} finally {
 			lock.unlock();
 		}
@@ -410,7 +408,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		try {
 			workers.remove(w);
 			threads.remove(w.thread);
-			if (--poolSize == 0) tryTerminate();
+			if (workers.size() == 0) tryTerminate();
 		} finally {
 			mainLock.unlock();
 		}
@@ -429,7 +427,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 * 尝试关闭执行器
 	 */
 	private void tryTerminate() {
-		if (poolSize == 0) {
+		if (workers.size() == 0) {
 			int state = runState;
 			if (state < STOP && !queue.isEmpty()) {
 				state = RUNNING; // 新增执行器完成剩除任务
@@ -458,7 +456,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		try {
 			int size = queue.size();
 			if (runState == RUNNING) size = Math.max(size, minSize());
-			canExit = runState >= STOP || poolSize > size;
+			canExit = runState >= STOP || workers.size() > size;
 		} finally {
 			mainLock.unlock();
 		}
@@ -634,6 +632,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		}
 
 		public void run() {
+			wcount.incrementAndGet();
 			try {
 				Runnable task = cTask;
 				cTask = null;
@@ -646,6 +645,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 				}
 			} finally {
 				workerDone(this);
+				wcount.decrementAndGet();
 			}
 		}
 
