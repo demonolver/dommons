@@ -46,11 +46,9 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 
 	private final ReentrantLock mainLock;
 	private final Condition termination;
-	private final AtomicInteger working;
 	private final AtomicInteger wcount;
 
 	volatile int runState;
-	// volatile int poolSize;
 	Collection<Worker> workers;
 	Collection<Thread> threads;
 
@@ -65,7 +63,6 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		this.runState = RUNNING;
 		this.mainLock = new ReentrantLock();
 		this.termination = mainLock.newCondition();
-		this.working = new AtomicInteger(0);
 		this.wcount = new AtomicInteger(0);
 	}
 
@@ -294,12 +291,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 * @param thread 线程
 	 */
 	protected void runWorker(Runnable task, Thread thread) {
-		working.incrementAndGet();
-		try {
-			run(task, thread);
-		} finally {
-			working.decrementAndGet();
-		}
+		run(task, thread);
 	}
 
 	/**
@@ -320,7 +312,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 * @return 线程数
 	 */
 	protected int workingCount() {
-		return working.get();
+		return workers.size() - wcount.get();
 	}
 
 	/**
@@ -358,7 +350,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		lock.lock();
 		try {
 			int s = maxSize(), ps = workers.size();
-			if ((ps < s || ps < 1) && runState == RUNNING && wcount.get() <= workingCount()) t = addThread(r);
+			if ((ps < s || ps < 1) && runState == RUNNING && wcount.get() <= 0) t = addThread(r);
 		} finally {
 			lock.unlock();
 		}
@@ -370,9 +362,22 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 * @return 任务项
 	 */
 	Runnable getTask() {
-		for (;;) {
+		for (int i = 0;; i = (++i % 5)) {
 			int state = runState;
 			if (state > SHUTDOWN) return null;
+			wa: if (i > 0) {
+				try {
+					long t = 6000l;
+					if (runState > RUNNING) {
+						if (queue.isEmpty()) break wa;
+						t = 500l;
+					}
+					synchronized (queue) {
+						queue.wait(t, 0);
+					}
+				} catch (InterruptedException e) {
+				}
+			}
 			synchronized (queue) {
 				Iterator<Runnable> it = queue.iterator();
 				for (; it.hasNext();) {
@@ -384,17 +389,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 					}
 				}
 			}
-			if (state == RUNNING) {
-				try {
-					long s = System.currentTimeMillis(), t = 30000l;
-					synchronized (queue) {
-						queue.wait(t, 0);
-					}
-					if (System.currentTimeMillis() - s < t && state == runState) continue;
-				} catch (InterruptedException e) {
-				}
-			}
-			if (workerCanExit()) return null;
+			if ((i >= 4 || runState >= STOP) && workerCanExit()) return null;
 		}
 	}
 
@@ -636,12 +631,12 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 			try {
 				Runnable task = cTask;
 				cTask = null;
-				for (; runState == RUNNING;) {
+				for (;;) {
 					while (task != null || (task = getTask()) != null) {
 						runTask(task);
 						task = null;
 					}
-					if (System.currentTimeMillis() >= s) break;
+					if (runOver()) break;
 				}
 			} finally {
 				workerDone(this);
@@ -650,11 +645,26 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		}
 
 		/**
+		 * 是否运行终结
+		 * @return 是、否
+		 */
+		private boolean runOver() {
+			if (System.currentTimeMillis() >= s) return true;
+			else if (runState > RUNNING) return true;
+			return false;
+		}
+
+		/**
 		 * 执行任务
 		 * @param task 任务项
 		 */
 		private void runTask(Runnable task) {
-			runWorker(task, thread);
+			wcount.decrementAndGet();
+			try {
+				runWorker(task, thread);
+			} finally {
+				wcount.incrementAndGet();
+			}
 		}
 	}
 }
