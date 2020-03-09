@@ -349,8 +349,8 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		final Lock lock = this.mainLock;
 		lock.lock();
 		try {
-			int s = maxSize(), ps = workers.size();
-			if ((ps < s || ps < 1) && runState == RUNNING && wcount.get() <= 0) t = addThread(r);
+			int s = maxSize(), ps = workers.size(), qs = queue.size();
+			if ((ps < s || ps < 1) && runState == RUNNING && (wcount.get() <= 0 || ps <= qs)) t = addThread(r);
 		} finally {
 			lock.unlock();
 		}
