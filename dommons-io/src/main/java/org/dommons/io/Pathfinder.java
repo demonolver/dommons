@@ -26,6 +26,7 @@ import org.dommons.core.util.Arrayard;
 import org.dommons.io.coder.URLCoder;
 import org.dommons.io.file.FileRoboter;
 import org.dommons.io.file.Filenvironment;
+import org.dommons.io.jarurl.JarURLHelper;
 
 /**
  * 路径工具集
@@ -91,7 +92,7 @@ public final class Pathfinder {
 			if (ze.isDirectory()) continue;
 			String name = ze.getName();
 			if (name.startsWith(path)) {
-				if (pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(new File(zip.getName()), ze));
+				if (pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(zip, zip.getName(), ze, null));
 			}
 		}
 		return urls.toArray(new URL[urls.size()]);
@@ -288,7 +289,7 @@ public final class Pathfinder {
 		Assertor.F.notNull(file, "The zip file is must not be null!");
 		Assertor.F.notNull(ze, "The zip entry is must not be null!");
 
-		return jarURL(getCanonicalPath(file.getName()), ze);
+		return jarURL(file, file.getName(), ze, null);
 	}
 
 	/**
@@ -491,7 +492,8 @@ public final class Pathfinder {
 								ZipEntry ze = en.nextElement();
 								if (ze.isDirectory()) continue;
 								String name = ze.getName();
-								if (name.startsWith(prefix) && pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(path, ze));
+								if (name.startsWith(prefix) && pattern.matcher(name.substring(pt)).matches())
+									urls.add(jarURL(zip, path, ze, parent));
 							}
 						} finally {
 							if (zip != null && closable) zip.close();
@@ -506,33 +508,13 @@ public final class Pathfinder {
 
 	/**
 	 * 生成 JAR 路径
-	 * @param file JAR 文件
-	 * @param ze 元素项
-	 * @return 路径
-	 */
-	static URL jarURL(File file, ZipEntry ze) {
-		return jarURL(getCanonicalPath(file), ze);
-	}
-
-	/**
-	 * 生成 JAR 路径
+	 * @param
 	 * @param path 文件路径
 	 * @param ze 元素项
 	 * @return 路径
 	 */
-	static URL jarURL(String path, ZipEntry ze) {
-		if (File.separatorChar != '/') path = path.replace(File.separatorChar, '/');
-		StringBuilder buffer = new StringBuilder();
-		if (!path.startsWith("file:")) buffer.append("file:");
-		if (!path.startsWith("/")) buffer.append('/');
-		buffer.append(path).append("!/");
-		buffer.append(ze.getName());
-		try {
-			return new URL("jar", null, buffer.toString());
-		} catch (IOException e) {
-			// 一般不出错
-			throw new RuntimeException(e);
-		}
+	static URL jarURL(ZipFile zip, String path, ZipEntry ze, URL parent) {
+		return JarURLHelper.jarurl(zip, path, ze, parent);
 	}
 
 	/**
