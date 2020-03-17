@@ -28,7 +28,6 @@ public class JarURLHelper {
 		if (File.separatorChar != '/') path = path.replace(File.separatorChar, '/');
 		StringBuilder buf = new StringBuilder();
 		int s = 5;
-		System.out.println(path);
 		buf.append("file:");
 		if (!path.startsWith("file:")) s = 0;
 		if (!path.startsWith("/", s)) buf.append('/');
@@ -36,8 +35,7 @@ public class JarURLHelper {
 		buf.append(entry.getName());
 		try {
 			String sf = buf.toString();
-			System.out.println(sf);
-			return new URL("jar", null, -1, sf, handler(parent, entry, zip, sf));
+			return new URL("jar", null, -1, sf);
 		} catch (IOException e) {
 			// 一般不出错
 			throw new RuntimeException(e);
