@@ -27,12 +27,16 @@ public class JarURLHelper {
 	public static URL jarurl(ZipFile zip, String path, ZipEntry entry, URL parent) {
 		if (File.separatorChar != '/') path = path.replace(File.separatorChar, '/');
 		StringBuilder buf = new StringBuilder();
-		if (!path.startsWith("file:")) buf.append("file:");
-		if (!path.startsWith("/")) buf.append('/');
-		buf.append(path).append("!/");
+		int s = 5;
+		System.out.println(path);
+		buf.append("file:");
+		if (!path.startsWith("file:")) s = 0;
+		if (!path.startsWith("/", s)) buf.append('/');
+		buf.append(path.substring(s)).append("!/");
 		buf.append(entry.getName());
 		try {
 			String sf = buf.toString();
+			System.out.println(sf);
 			return new URL("jar", null, -1, sf, handler(parent, entry, zip, sf));
 		} catch (IOException e) {
 			// 一般不出错
