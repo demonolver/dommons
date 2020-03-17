@@ -26,7 +26,6 @@ import org.dommons.core.util.Arrayard;
 import org.dommons.io.coder.URLCoder;
 import org.dommons.io.file.FileRoboter;
 import org.dommons.io.file.Filenvironment;
-import org.dommons.io.jarurl.JarURLHelper;
 
 /**
  * 路径工具集
@@ -92,7 +91,7 @@ public final class Pathfinder {
 			if (ze.isDirectory()) continue;
 			String name = ze.getName();
 			if (name.startsWith(path)) {
-				if (pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(zip, zip.getName(), ze, null));
+				if (pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(zip.getName(), ze));
 			}
 		}
 		return urls.toArray(new URL[urls.size()]);
@@ -289,7 +288,7 @@ public final class Pathfinder {
 		Assertor.F.notNull(file, "The zip file is must not be null!");
 		Assertor.F.notNull(ze, "The zip entry is must not be null!");
 
-		return jarURL(file, file.getName(), ze, null);
+		return jarURL(file.getName(), ze);
 	}
 
 	/**
@@ -492,8 +491,7 @@ public final class Pathfinder {
 								ZipEntry ze = en.nextElement();
 								if (ze.isDirectory()) continue;
 								String name = ze.getName();
-								if (name.startsWith(prefix) && pattern.matcher(name.substring(pt)).matches())
-									urls.add(jarURL(zip, path, ze, parent));
+								if (name.startsWith(prefix) && pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(path, ze));
 							}
 						} finally {
 							if (zip != null && closable) zip.close();
@@ -508,13 +506,26 @@ public final class Pathfinder {
 
 	/**
 	 * 生成 JAR 路径
-	 * @param
 	 * @param path 文件路径
 	 * @param ze 元素项
 	 * @return 路径
 	 */
-	static URL jarURL(ZipFile zip, String path, ZipEntry ze, URL parent) {
-		return JarURLHelper.jarurl(zip, path, ze, parent);
+	static URL jarURL(String path, ZipEntry ze) {
+		if (File.separatorChar != '/') path = path.replace(File.separatorChar, '/');
+		StringBuilder buf = new StringBuilder();
+		int s = 5;
+		buf.append("file:");
+		if (!path.startsWith("file:")) s = 0;
+		if (!path.startsWith("/", s)) buf.append('/');
+		buf.append(path.substring(s)).append("!/");
+		buf.append(ze.getName());
+		try {
+			String sf = buf.toString();
+			return new URL("jar", null, -1, sf);
+		} catch (IOException e) {
+			// 一般不出错
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
