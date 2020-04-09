@@ -41,10 +41,18 @@ public class DataPair<K, V> implements Entry<K, V>, Serializable {
 
 	/**
 	 * 构造函数
+	 */
+	public DataPair() {
+		super();
+	}
+
+	/**
+	 * 构造函数
 	 * @param key 数据键
 	 * @param value 数据值
 	 */
 	public DataPair(K key, V value) {
+		this();
 		this.k = key;
 		this.v = value;
 	}
