@@ -400,6 +400,12 @@ public final class Arrayard {
 	 * @return 索引号
 	 */
 	public static int indexOf(Object array, Object obj, int start) {
+		if (array == null && obj == null) return -1;
+		if (array != null && !array.getClass().isArray() && obj != null && obj.getClass().isArray()) {
+			Object a = array;
+			array = obj;
+			obj = a;
+		}
 		if (array == null || !array.getClass().isArray()) return -1;
 		int len = Array.getLength(array);
 		for (int i = start < 0 ? 0 : start; i < len; i++) {
