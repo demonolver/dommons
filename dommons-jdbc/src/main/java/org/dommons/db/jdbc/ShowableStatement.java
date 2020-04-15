@@ -163,6 +163,7 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 			return result;
 		} catch (SQLException e) {
 			se = e;
+			time = System.currentTimeMillis() - time;
 			throw transform(e, batchs == null ? null : batchs.toArray());
 		} finally {
 			logBatchs(se, toResult(result), time);
