@@ -199,8 +199,10 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	protected void insert(Runnable r) {
 		if (r == null) return;
 		synchronized (queue) {
+			if (now(r) && addWorker(r)) return;
 			if (queue instanceof List) ((List) queue).add(0, r);
 			else queue.offer(r);
+			queue.notify();
 		}
 	}
 
