@@ -152,6 +152,17 @@ public class Jacksondata {
 	}
 
 	/**
+	 * 转换集合类型
+	 * @param rawType 集合类型
+	 * @param elemType 元素类型
+	 * @return 集合 JSON 类型
+	 */
+	public static JavaType typeCollection(Class<? extends Collection> rawType, Type elemType) {
+		JavaType elem = type(elemType);
+		return typeCollection(rawType, elem);
+	}
+
+	/**
 	 * 下划线转为大写属性名
 	 * @param name 属性名
 	 * @return 新属性名
