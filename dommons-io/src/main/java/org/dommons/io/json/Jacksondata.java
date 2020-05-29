@@ -127,17 +127,27 @@ public class Jacksondata {
 	 * @param elemType 元素类型
 	 * @return 集合 JSON 类型
 	 */
-	@SuppressWarnings("deprecation")
 	public static JavaType typeCollection(Class<? extends Collection> rawType, Class<?> elemType) {
-		if (rawType == null) rawType = LinkedList.class;
 		JavaType elem = type(elemType);
+		return typeCollection(rawType, elem);
+	}
+
+	/**
+	 * 转换集合类型
+	 * @param rawType 集合类型
+	 * @param elemType 元素类型
+	 * @return 集合 JSON 类型
+	 */
+	@SuppressWarnings("deprecation")
+	public static JavaType typeCollection(Class<? extends Collection> rawType, JavaType elemType) {
+		if (rawType == null) rawType = LinkedList.class;
 		try {
-			JavaType type = JsonCollectionType.collection(rawType, elem);
+			JavaType type = JsonCollectionType.collection(rawType, elemType);
 			if (type != null) return type;
 		} catch (Throwable t) { // ignored
 		}
 		{
-			return CollectionType.construct(rawType, elem);
+			return CollectionType.construct(rawType, elemType);
 		}
 	}
 
