@@ -104,6 +104,7 @@ class NLSBundle {
 	 * @return 转换后资源包名
 	 */
 	static String convertBundle(String bundleName) {
+		if (bundleName.indexOf('/') > 0) return bundleName;
 		StringBuilder buffer = new StringBuilder();
 		int len = bundleName.length();
 		for (int i = 0; i < len; i++) {
