@@ -259,8 +259,22 @@ public final class Stringure {
 	 * @param vs 字符串集
 	 * @return 新字符串集
 	 */
-	public static String[] deduplicate(String[] vs) {
+	public static String[] deduplicate(String... vs) {
 		return deduplicate(vs, 0);
+	}
+
+	/**
+	 * 去除重复串
+	 * @param vs 字符串集
+	 * @param trim 是否去除空格
+	 * @param ignoreCase 是否忽略大小写
+	 * @return 新字符串集
+	 */
+	public static String[] deduplicate(String[] vs, boolean trim, boolean ignoreCase) {
+		int t = 0;
+		if (trim) t |= 1;
+		if (ignoreCase) t |= 2;
+		return deduplicate(vs, t);
 	}
 
 	/**
