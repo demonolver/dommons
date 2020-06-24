@@ -12,6 +12,7 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -243,7 +244,7 @@ public final class Stringure {
 	 */
 	public static String convertVariables(CharSequence str, Map vars) {
 		if (str == null) return null;
-		else if (Arrayard.isEmpty(vars)) return Converter.F.convert(str, String.class);
+		else if (vars == null) vars = Collections.EMPTY_MAP;
 
 		StringBuilder result = new StringBuilder(32);
 		try {
