@@ -5,11 +5,11 @@ package org.dommons.core.concurrent;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
@@ -49,8 +49,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	private final AtomicInteger wcount;
 
 	volatile int runState;
-	Collection<Worker> workers;
-	Collection<Thread> threads;
+	Map<Long, Worker> workers;
 
 	protected Reference<ThreadsMonitor> ref;
 
@@ -58,8 +57,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		super();
 		this.factory = threadFactory != null ? threadFactory : Executors.defaultThreadFactory();
 		this.queue = queue == null ? new LinkedList() : queue;
-		this.workers = new HashSet();
-		this.threads = new HashSet();
+		this.workers = new HashMap();
 		this.runState = RUNNING;
 		this.mainLock = new ReentrantLock();
 		this.termination = mainLock.newCondition();
@@ -329,13 +327,12 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		if (t != null) {
 			if (t.isAlive()) return null;
 			w.thread = t;
-			threads.add(t);
-			workers.add(w);
+			workers.put(t.getId(), w);
 			try {
 				t.start();
 				workerStarted = true;
 			} finally {
-				if (!workerStarted) workers.remove(w);
+				if (!workerStarted) workers.remove(t.getId());
 			}
 		}
 		return t;
@@ -403,8 +400,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		final Lock mainLock = this.mainLock;
 		mainLock.lock();
 		try {
-			workers.remove(w);
-			threads.remove(w.thread);
+			workers.remove(w.thread.getId());
 			if (workers.size() == 0) tryTerminate();
 		} finally {
 			mainLock.unlock();
@@ -500,7 +496,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 			long s = System.currentTimeMillis(), x = Long.MAX_VALUE;
 			done: if (!f.isDone() && runnable) {
 				Thread t = Thread.currentThread();
-				if (!threads.contains(t)) break done; // 非当前线程池执行，不做尝试
+				if (!workers.containsKey(t.getId())) break done; // 非当前线程池执行，不做尝试
 				for (;;) {
 					run: if (!f.isDone()) { // 如果目标任务可执行
 						Boolean r = runnable();
