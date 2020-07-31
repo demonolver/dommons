@@ -547,7 +547,7 @@ public final class Stringure {
 		if (str == null) return true;
 		int len = str.length();
 		for (int i = 0; i < len; i++) {
-			if (!Character.isWhitespace(str.charAt(i))) return false;
+			if (!isEmpty(str.charAt(i))) return false;
 		}
 		return true;
 	}
@@ -1683,9 +1683,9 @@ public final class Stringure {
 		if (str == null) return empty;
 		int start = 0;
 		int end = str.length() - 1;
-		while (start <= end && Character.isWhitespace(str.charAt(start)))
+		while (start <= end && isEmpty(str.charAt(start)))
 			start++;
-		while (end >= start && Character.isWhitespace(str.charAt(end)))
+		while (end >= start && isEmpty(str.charAt(end)))
 			end--;
 		return str.subSequence(start, end + 1).toString();
 	}
@@ -1917,6 +1917,18 @@ public final class Stringure {
 		if (start > len) return null;
 		if (end > len) end = len;
 		return new int[] { start, end };
+	}
+
+	/**
+	 * 是否空字符
+	 * @param ch 字符
+	 * @return 是、否
+	 */
+	private static boolean isEmpty(char ch) {
+		if (Character.isWhitespace(ch)) return true;
+		else if (Character.isISOControl(ch)) return true;
+		else if (Character.isIdentifierIgnorable(ch) && Emchar.isEmpty(ch)) return true;
+		return false;
 	}
 
 	/**
