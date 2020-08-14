@@ -15,9 +15,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -45,6 +46,9 @@ public final class Stringure {
 	/** 空字节数组 */
 	public static final byte[] embytes = new byte[0];
 
+	/** UTF-8 字符集 */
+	public static Charset utf_8 = charset("utf-8");
+
 	/**
 	 * 获取字符集
 	 * @param defaultable 允许最后使用默认字符集
@@ -53,7 +57,7 @@ public final class Stringure {
 	 * @throws UnsupportedCharsetException
 	 */
 	public static Charset charset(boolean defaultable, String... names) throws UnsupportedCharsetException {
-		List<RuntimeException> res = new ArrayList();
+		Queue<RuntimeException> res = new LinkedList();
 		if (names != null) {
 			for (String n : names) {
 				try {
@@ -64,7 +68,7 @@ public final class Stringure {
 			}
 		}
 		if (defaultable) return Environments.defaultCharset();
-		else if (res.size() == 1) throw res.get(0);
+		else if (res.size() == 1) throw res.poll();
 		else throw new UnsupportedCharsetException(Stringure.join(',', names));
 	}
 
