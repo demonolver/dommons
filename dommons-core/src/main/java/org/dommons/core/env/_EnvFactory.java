@@ -31,7 +31,11 @@ public final class _EnvFactory {
 	 * @return 配置集
 	 */
 	public static Properties properties() {
-		if (properties == null) properties = new _EnvFactory().load();
+		if (properties == null) {
+			synchronized (_EnvFactory.class) {
+				if (properties == null) properties = new _EnvFactory().load();
+			}
+		}
 		return properties;
 	}
 
