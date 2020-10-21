@@ -41,6 +41,15 @@ public abstract class EnvironmentLoader {
 	}
 
 	/**
+	 * 加载默认环境变量集
+	 * @param defaults 默认配置
+	 * @return 配置集
+	 */
+	protected static Properties loadEnvs(Properties defaults) {
+		return new DefaultEnvLoader().load(defaults);
+	}
+
+	/**
 	 * 加载配置集
 	 * @param defaults 默认配置
 	 * @return 配置集
