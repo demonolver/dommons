@@ -21,8 +21,6 @@ import org.dommons.log.AbstractLogger;
  */
 class LoggerW4j extends AbstractLogger {
 
-	static final String FQCN = "org.dommons.log.LoggerWrapper";
-
 	private final Logger tar;
 
 	/**

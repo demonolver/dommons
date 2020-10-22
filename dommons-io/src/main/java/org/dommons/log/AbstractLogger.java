@@ -15,6 +15,8 @@ import org.dommons.io.message.MessageTemplate;
  */
 public abstract class AbstractLogger implements Logger {
 
+	protected static final String FQCN = "org.dommons.log.LoggerWrapper";
+
 	/**
 	 * 信息转换
 	 * @param pattern 模板串

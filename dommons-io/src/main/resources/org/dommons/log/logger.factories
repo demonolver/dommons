@@ -1,4 +1,4 @@
-factories = android,log4j,slf4j,logging,jdk
+factories = android,log4j,logback,slf4j,logging,jdk
 
 log4j.target = org.apache.log4j.spi.RootLogger
 log4j.class = org.dommons.log.log4j.Log4jFactory
@@ -14,3 +14,6 @@ android.class = org.dommons.android.log.AndroidLogFactory
 
 slf4j.target = org.slf4j.Logger
 slf4j.class = org.dommons.log.slf4j.Slf4jFactory
+
+logback.target = ch.qos.logback.classic.Logger
+logback.class = org.dommons.log.logback.LogbackFactory
