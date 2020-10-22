@@ -4,6 +4,7 @@
 package org.dommons.log;
 
 import org.dommons.core.Assertor;
+import org.dommons.core.Silewarner;
 import org.dommons.core.format.text.MessageFormat;
 import org.dommons.core.string.Stringure;
 import org.dommons.io.message.DefaultTemplate;
@@ -15,7 +16,7 @@ import org.dommons.io.message.MessageTemplate;
  */
 public abstract class AbstractLogger implements Logger {
 
-	protected static final String FQCN = "org.dommons.log.LoggerWrapper";
+	static final String FQCN = "org.dommons.log.LoggerWrapper";
 
 	/**
 	 * 信息转换
@@ -154,6 +155,15 @@ public abstract class AbstractLogger implements Logger {
 
 	public void warn(Throwable t, MessageTemplate template, Object... params) {
 		if (isWarnEnabled()) logWarn(t, toString(template, params));
+	}
+
+	/**
+	 * 获取日志实例类名
+	 * @return 类名
+	 */
+	protected String getFQCN() {
+		if (Silewarner.isWarning()) return Silewarner.class.getName();
+		else return FQCN;
 	}
 
 	/**

@@ -82,6 +82,6 @@ public class LoggerWBack extends AbstractLogger {
 	 * @param t 异常
 	 */
 	void log(int level, String message, Throwable t) {
-		tar.log(null, FQCN, level, message, null, t);
+		tar.log(null, getFQCN(), level, message, null, t);
 	}
 }

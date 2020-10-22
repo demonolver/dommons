@@ -103,7 +103,7 @@ class LoggerW4j extends AbstractLogger {
 	 * @param t 异常
 	 */
 	protected void forcedLog(Priority level, Object message, Throwable t) {
-		LoggingEvent event = new LoggingEvent(FQCN, tar, level, message, t);
+		LoggingEvent event = new LoggingEvent(getFQCN(), tar, level, message, t);
 		Collection<Appender> appenders = new HashSet();
 		for (Category c = tar; c != null; c = c.getParent()) {
 			if (!c.isEnabledFor(level)) continue;

@@ -19,6 +19,8 @@ import org.dommons.core.string.Stringure;
  */
 public final class Silewarner {
 
+	static final ThreadLocal<Boolean> local = new ThreadLocal();
+
 	/**
 	 * 记录错误
 	 * @param cls 类
@@ -53,6 +55,14 @@ public final class Silewarner {
 	 */
 	public static void error(Class cls, Throwable t) {
 		error(cls, null, t);
+	}
+
+	/**
+	 * 是否正在报警
+	 * @return 是、否
+	 */
+	public static boolean isWarning() {
+		return Boolean.TRUE.equals(local.get());
 	}
 
 	/**
@@ -312,16 +322,21 @@ public final class Silewarner {
 		 * @return 是否记录成功
 		 */
 		public boolean error(String msg, Throwable t) {
-			Method m = findMethod(inst.getClass(), "error", Throwable.class, CharSequence.class);
+			local.set(Boolean.TRUE);
 			try {
-				if (m != null) {
-					m.invoke(inst, t, msg);
-					return true;
+				Method m = findMethod(inst.getClass(), "error", Throwable.class, CharSequence.class);
+				try {
+					if (m != null) {
+						m.invoke(inst, t, msg);
+						return true;
+					}
+				} catch (Throwable e) {
+					Silewarner.warn(e);
 				}
-			} catch (Throwable e) {
-				Silewarner.warn(e);
+				return false;
+			} finally {
+				local.remove();
 			}
-			return false;
 		}
 
 		/**
@@ -331,16 +346,21 @@ public final class Silewarner {
 		 * @return 是否记录成功
 		 */
 		public boolean warn(String msg, Throwable t) {
-			Method m = findMethod(inst.getClass(), "warn", Throwable.class, CharSequence.class);
+			local.set(Boolean.TRUE);
 			try {
-				if (m != null) {
-					m.invoke(inst, t, msg);
-					return true;
+				Method m = findMethod(inst.getClass(), "warn", Throwable.class, CharSequence.class);
+				try {
+					if (m != null) {
+						m.invoke(inst, t, msg);
+						return true;
+					}
+				} catch (Throwable e) {
+					Silewarner.warn(e);
 				}
-			} catch (Throwable e) {
-				Silewarner.warn(e);
+				return false;
+			} finally {
+				local.remove();
 			}
-			return false;
 		}
 	}
 }
