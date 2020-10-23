@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
@@ -1563,6 +1564,27 @@ public final class Stringure {
 	/**
 	 * 将字节流转为字符串
 	 * @param bytes 字节流
+	 * @param dc 字符反序列
+	 * @return 字符串
+	 */
+	public static String toString(byte[] bytes, CharsetDecoder dc) {
+		return toString(bytes, 0, bytes == null ? 0 : bytes.length, dc);
+	}
+
+	/**
+	 * 将字节流转为字符串
+	 * @param bytes 字节流
+	 * @param dc 字符反序列
+	 * @param buffer 目标缓存区
+	 * @return 字符缓存区
+	 */
+	public static <A extends Appendable> A toString(byte[] bytes, CharsetDecoder dc, A buffer) {
+		return toString(bytes, 0, bytes == null ? 0 : bytes.length, dc, buffer);
+	}
+
+	/**
+	 * 将字节流转为字符串
+	 * @param bytes 字节流
 	 * @param offset 起始位
 	 * @param length 长度
 	 * @param cs 字符集
@@ -1582,22 +1604,43 @@ public final class Stringure {
 	 * @return 字符缓存区
 	 */
 	public static <A extends Appendable> A toString(byte[] bytes, int offset, int length, Charset cs, A buffer) {
+		CharsetDecoder dc = null;
+		if (cs != null) dc = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
+		return toString(bytes, offset, length, dc, buffer);
+	}
+
+	/**
+	 * 将字节流转为字符串
+	 * @param bytes 字节流
+	 * @param offset 起始位
+	 * @param length 长度
+	 * @param dc 字符反序列
+	 * @return 字符串
+	 */
+	public static String toString(byte[] bytes, int offset, int length, CharsetDecoder dc) {
+		return toString(bytes, offset, length, dc, new StringBuilder(length)).toString();
+	}
+
+	/**
+	 * @param bytes
+	 * @param offset
+	 * @param length
+	 * @param dc
+	 * @param buffer
+	 * @return
+	 */
+	public static <A extends Appendable> A toString(byte[] bytes, int offset, int length, CharsetDecoder dc, A buffer) {
 		int len = bytes == null ? 0 : bytes.length;
 		if (length == 0 || offset >= len) return buffer;
 		if (offset < 0) offset = 0;
 
 		if (buffer == null) buffer = (A) new StringBuilder(length);
-		if (cs == null) cs = Environments.defaultCharset();
-
-		try {
-			return (A) buffer
-					.append(cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
-							.decode(ByteBuffer.wrap(bytes, offset, Math.min(length, len - offset))));
-		} catch (CharacterCodingException e) {
-			throw Converter.P.convert(e, RuntimeException.class);
-		} catch (IOException e) {
-			throw Converter.P.convert(e, RuntimeException.class);
+		if (dc == null) {
+			dc = Environments.defaultCharset().newDecoder();
+			dc = dc.onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
 		}
+		decode(bytes, offset, Math.min(len - offset, length), dc, buffer);
+		return buffer;
 	}
 
 	/**
@@ -1921,6 +1964,49 @@ public final class Stringure {
 		if (start > len) return null;
 		if (end > len) end = len;
 		return new int[] { start, end };
+	}
+
+	/**
+	 * 执行反解
+	 * @param ba 字节流
+	 * @param off 起始位
+	 * @param len 长度
+	 * @param dc 字符反解
+	 * @param buf 缓存区
+	 */
+	private static <A extends Appendable> void decode(byte[] ba, int off, int len, CharsetDecoder dc, A buf) {
+		try {
+			try {
+				if (decodeArray(ba, off, len, dc, buf)) return;
+			} catch (IOException e) {
+				throw e;
+			} catch (Throwable t) { // ignored;
+			}
+
+			ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+			buf.append(dc.decode(bb));
+		} catch (Throwable t) {
+			throw Converter.F.convert(t, RuntimeException.class);
+		}
+	}
+
+	/**
+	 * Array 式反序列化
+	 * @param ba 字节流
+	 * @param o 起始位
+	 * @param len 长度
+	 * @param dc 字符反解
+	 * @param buf 缓存区
+	 * @return 是否成功
+	 * @throws IOException
+	 */
+	@SuppressWarnings("restriction")
+	private static <A extends Appendable> boolean decodeArray(byte[] ba, int o, int len, CharsetDecoder dc, A buf) throws IOException {
+		if (!(dc instanceof sun.nio.cs.ArrayDecoder)) return false;
+		char[] ca = new char[(int) (len * (double) dc.maxCharsPerByte())];
+		int clen = ((sun.nio.cs.ArrayDecoder) dc).decode(ba, o, len, ca);
+		if (clen > 0) buf.append(new String(ca, 0, clen));
+		return true;
 	}
 
 	/**
