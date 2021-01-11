@@ -5,6 +5,7 @@ package org.dommons.io.coder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -188,7 +189,7 @@ public class URLCoder implements Coder {
 	 * @return 参数集串
 	 */
 	public String join(Map<String, ?> query) {
-		return join(null, query).toString();
+		return join((StringBuilder) null, query).toString();
 	}
 
 	/**
@@ -199,29 +200,10 @@ public class URLCoder implements Coder {
 	 * @return 网址
 	 */
 	public String join(String host, String path, Map ps) {
-		StringBuilder buf = new StringBuilder(64);
 		host = Stringure.trim(host);
-		boolean h = false;
-		if (!host.isEmpty()) {
-			try {
-				URL u = new URL(host);
-				buf.append(u.getProtocol()).append("://");
-				h: if (!Stringure.isEmpty(u.getHost())) {
-					buf.append(u.getHost());
-					int p = u.getPort();
-					if (p <= 0) break h;
-					else if ("https".equals(u.getProtocol()) && p == 443) break h;
-					else if ("http".equals(u.getProtocol()) && p == 80) break h;
-					buf.append(':').append(u.getPort());
-				}
-				h = path(buf, u.getPath(), false);
-				ps = parse(u.getQuery(), ps);
-			} catch (MalformedURLException e) { // ignored
-			}
-		}
-		path(buf, path, !h);
-		join(buf, ps);
-		return buf.toString();
+		URI u = null;
+		if (!host.isEmpty()) u = URI.create(host);
+		return join(u, path, ps);
 	}
 
 	/**
@@ -245,6 +227,44 @@ public class URLCoder implements Coder {
 			}
 		}
 		return buf;
+	}
+
+	/**
+	 * 连接网址
+	 * @param uri 路径
+	 * @param ps 参数集
+	 * @return 网址
+	 */
+	public String join(URI uri, Map ps) {
+		return join(uri, null, ps);
+	}
+
+	/**
+	 * 连接网址
+	 * @param uri 地址
+	 * @param path 路径
+	 * @param ps 参数集
+	 * @return 网址
+	 */
+	public String join(URI uri, String path, Map ps) {
+		StringBuilder buf = new StringBuilder(64);
+		boolean h = false;
+		if (uri != null) {
+			buf.append(uri.getScheme()).append("://");
+			h: if (!Stringure.isEmpty(uri.getHost())) {
+				buf.append(uri.getHost());
+				int p = uri.getPort();
+				if (p <= 0) break h;
+				else if ("https".equals(uri.getScheme()) && p == 443) break h;
+				else if ("http".equals(uri.getScheme()) && p == 80) break h;
+				buf.append(':').append(uri.getPort());
+			}
+			h = path(buf, uri.getPath(), false);
+			ps = parse(uri.getQuery(), ps);
+		}
+		path(buf, path, !h);
+		join(buf, ps);
+		return buf.toString();
 	}
 
 	/**
