@@ -385,8 +385,12 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 */
 	protected static Double d(Number num) {
 		if (num == null) return null;
-		if (num instanceof Numeric) num = ((Numeric) num).dec;
-		else if (num instanceof Double || num instanceof Float) num = Numeric.valueOf(num).dec;
+		if (num instanceof Numeric) {
+			num = ((Numeric) num).dec;
+		} else if (num instanceof Double || num instanceof Float) {
+			double d = num.doubleValue();
+			if (!Double.isNaN(d) && !Double.isInfinite(d)) num = Numeric.valueOf(num).dec;
+		}
 		if (num instanceof BigDecimal) return r((BigDecimal) num, d_scale).doubleValue();
 		else return num.doubleValue();
 	}
