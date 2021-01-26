@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.MapType;
 
 /**
  * Jackson 数据
@@ -160,6 +161,39 @@ public class Jacksondata {
 	public static JavaType typeCollection(Class<? extends Collection> rawType, Type elemType) {
 		JavaType elem = type(elemType);
 		return typeCollection(rawType, elem);
+	}
+
+	/**
+	 * 转换映射表类型
+	 * @param mapType 映射表类型
+	 * @param keyT 键类型
+	 * @param valueT 值类型
+	 * @return 映射表 JSON 类型
+	 */
+	@SuppressWarnings("deprecation")
+	public static JavaType typeMap(Class<? extends Map> mapType, JavaType keyT, JavaType valueT) {
+		return MapType.construct(mapType, keyT, valueT);
+	}
+
+	/**
+	 * 转换映射表类型
+	 * @param mapType 映射表类型
+	 * @param keyT 键类型
+	 * @param valueT 值类型
+	 * @return 映射表 JSON 类型
+	 */
+	public static JavaType typeMap(Class<? extends Map> mapType, Type keyT, Type valueT) {
+		return typeMap(mapType, type(keyT), type(valueT));
+	}
+
+	/**
+	 * 转换映射表类型
+	 * @param keyT 键类型
+	 * @param valueT 值类型
+	 * @return 映射表 JSON 类型
+	 */
+	public static JavaType typeMap(Type keyT, Type valueT) {
+		return typeMap(Map.class, keyT, valueT);
 	}
 
 	/**
