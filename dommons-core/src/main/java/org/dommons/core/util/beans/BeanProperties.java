@@ -198,6 +198,7 @@ public final class BeanProperties {
 			if (m == null) continue;
 			Throwable tt = null;
 			try {
+				if (!m.isAccessible()) m.setAccessible(true);
 				Object v = m.invoke(src);
 				if (v == null && nonNull) continue;
 				tm.put(name, v);
@@ -285,10 +286,12 @@ public final class BeanProperties {
 			if (wm == null || rm == null) continue;
 			Throwable tt = null;
 			try {
+				if (!rm.isAccessible()) rm.setAccessible(true);
 				Object v = rm.invoke(src);
 				if (v == null && nonNull) continue;
 				Class wt = wm.getParameterTypes()[0];
 				if (v == null && wt.isPrimitive()) continue;
+				if (!wm.isAccessible()) wm.setAccessible(true);
 				wm.invoke(tar, Converter.P.convert(v, wt));
 			} catch (InvocationTargetException e) {
 				tt = e.getTargetException();
