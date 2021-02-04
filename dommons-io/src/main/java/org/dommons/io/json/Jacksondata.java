@@ -73,6 +73,25 @@ public class Jacksondata {
 	}
 
 	/**
+	 * 转换为修饰后的字符串
+	 * @param obj 目标对象
+	 * @return 字符串
+	 */
+	public static String pretty(Object obj) {
+		return pretty(obj, false);
+	}
+
+	/**
+	 * 转换为修饰后的字符串
+	 * @param obj 目标对象
+	 * @param underscore 大写属性名是转成小写下划线
+	 * @return 字符串
+	 */
+	public static String pretty(Object obj, boolean underscore) {
+		return string(obj, underscore, true);
+	}
+
+	/**
 	 * 拆分对象 JSON 串
 	 * @param json 原 JSON 串
 	 * @return 结果集 [属性名, 属性值 JSON 串]
@@ -101,10 +120,22 @@ public class Jacksondata {
 	 * @return 字符串
 	 */
 	public static String string(Object obj, boolean underscore) {
+		return string(obj, underscore, false);
+	}
+
+	/**
+	 * 对象转换为字符串
+	 * @param obj 目标对象
+	 * @param underscore 大写属性名是转成小写下划线
+	 * @param pretty
+	 * @return 字符串
+	 */
+	public static String string(Object obj, boolean underscore, boolean pretty) {
 		try {
 			if (obj == null) return null;
 			else if (obj instanceof CharSequence) return String.valueOf(obj);
-			else return mapper(underscore).writeValueAsString(obj);
+			else if (!pretty) return mapper(underscore).writeValueAsString(obj);
+			else return mapper(underscore).writerWithDefaultPrettyPrinter().writeValueAsString(obj);
 		} catch (IOException e) {
 			throw Converter.F.convert(e, RuntimeException.class);
 		}
