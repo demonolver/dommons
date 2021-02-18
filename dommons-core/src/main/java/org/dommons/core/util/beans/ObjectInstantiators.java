@@ -32,6 +32,7 @@ import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.ref.Strongref;
 import org.dommons.core.string.Stringure;
+import org.dommons.core.util.beans.ObjectInstantiator.ObjectCreator;
 
 /**
  * 数据对象构造器
@@ -43,6 +44,26 @@ public class ObjectInstantiators {
 	private static final Map<Class, org.dommons.core.util.beans.ObjectInstantiator> imap = new ConcurrentWeakMap();
 
 	private static Ref<ClassObjectInstantiator> iref;
+
+	/**
+	 * 通过对象实例化器生成对象创建器
+	 * @param clazz 对象类型
+	 * @param instantiator 实例化器
+	 * @return 对象创建器
+	 */
+	public static <O> ObjectCreator<O> creator(final Class<O> clazz, final ObjectInstantiator<O> instantiator) {
+		return new ObjectCreator<O>() {
+			@Override
+			public boolean isInstance(Object o) {
+				return clazz.isInstance(o);
+			}
+
+			@Override
+			public O newInstance() {
+				return instantiator.newInstance();
+			}
+		};
+	}
 
 	/**
 	 * 获取对象实例化器
