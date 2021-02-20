@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.dommons.core.collections.map.concurrent.ConcurrentMapWrapper;
 import org.dommons.core.convert.Converter;
+import org.dommons.core.util.beans.ObjectInstantiator;
 import org.dommons.core.util.beans.ObjectInstantiator.ObjectCreator;
 import org.dommons.core.util.beans.ObjectInstantiators;
 
@@ -158,6 +159,50 @@ public abstract class Mapped {
 		} else {
 			return touch(map, key, instCls);
 		}
+	}
+
+	/**
+	 * 触达子元素
+	 * @param <K> 键类型
+	 * @param <V> 值类型
+	 * @param <S> 目标结果类型
+	 * @param <C> 元素实现类型
+	 * @param map 映射表
+	 * @param key 键值名
+	 * @param instCls 元素实现类
+	 * @param instantiator 元素实例化器
+	 * @return 元素实例
+	 */
+	public static <K, V, S extends V, C extends S> S touch(
+			Map<? super K, V> map,
+			K key,
+			Class<C> instCls,
+			ObjectInstantiator<C> instantiator) {
+		if (map == null || key == null || instCls == null || instantiator == null) return null;
+		return touch(map, key, ObjectInstantiators.creator(instCls, instantiator));
+	}
+
+	/**
+	 * 触达子元素
+	 * @param <K> 键类型
+	 * @param <V> 值类型
+	 * @param <S> 目标结果类型
+	 * @param <C> 元素实现类型
+	 * @param map 映射表
+	 * @param key 键值名
+	 * @param instCls 元素实现类
+	 * @param instantiator 元素实例化器
+	 * @param syn 是否同步
+	 * @return 元素实例
+	 */
+	public static <K, V, S extends V, C extends S> S touch(
+			Map<? super K, V> map,
+			K key,
+			Class<C> instCls,
+			ObjectInstantiator<C> instantiator,
+			boolean syn) {
+		if (map == null || key == null || instCls == null || instantiator == null) return null;
+		return touch(map, key, ObjectInstantiators.creator(instCls, instantiator), syn);
 	}
 
 	/**
