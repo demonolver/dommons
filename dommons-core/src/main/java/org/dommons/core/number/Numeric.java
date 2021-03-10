@@ -93,6 +93,21 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	}
 
 	/**
+	 * 获取范围内值
+	 * @param <N> 数值类型
+	 * @param num 数值
+	 * @param min 最小值
+	 * @param max 最大值
+	 * @return 结果数值
+	 */
+	public static <N extends Number> N betweenValue(N num, N min, N max) {
+		if (num == null) return null;
+		else if (Numeric.less(num, Numeric.minimum(min, max))) return min;
+		else if (Numeric.greater(num, Numeric.maximum(min, max))) return max;
+		else return num;
+	}
+
+	/**
 	 * 数值是否相等 (仅针对数值大小，不区分数值类型)
 	 * <table border='0px'>
 	 * <tr>
