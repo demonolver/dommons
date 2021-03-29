@@ -24,14 +24,19 @@ format.radix.16.type = radix
 priority.radix.16 = 10
 
 format.in.show = \#,\#\#0.\#
-pattern.in.show = -?([1-9][0-9]{0,2}(\\.[0-9]{3})*|0)(\\,[0-9]*)?
+pattern.in.show = -?[1-9][0-9]{0,2}(\\.[0-9]{3})*\\,[0-9]+
 priority.in.show = 19
-format.in.show.locale.current = in
+format.in.show.locale = in
+
+format.fr.show = \#,\#\#0.\#
+pattern.fr.show = -?[1-9][0-9]{0,2}(\u00A0[0-9]{3})*\\,[0-9]+
+priority.fr.show = 19
+format.fr.show.locale = fr_FR
 
 format.currency.inid = \u00A4\#,\#\#0.\#
 pattern.currency.inid = -?[rR][pP]([1-9][0-9]{0,2}(\\.[0-9]{3})*|0)(\\,[0-9]*)?
 priority.currency.inid = 19
-format.currency.inid.locale.current = in_id
+format.currency.inid.locale = in_id
 
 format.currency.en = \u00A4\#0.\#
 pattern.currency.en = -?\\$[0-9]+(\\.[0-9]*)?
