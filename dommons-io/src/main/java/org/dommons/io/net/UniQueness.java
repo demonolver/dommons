@@ -271,6 +271,6 @@ public class UniQueness {
 	 * @return 字节
 	 */
 	private byte random() {
-		return (byte) rd.nextInt(Byte.MAX_VALUE);
+		return (byte) rd.nextInt(0xff);
 	}
 }
