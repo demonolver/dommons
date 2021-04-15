@@ -3,14 +3,11 @@
  */
 package org.dommons.io.net;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.URL;
 import java.security.SecureRandom;
 import java.util.Enumeration;
 import java.util.Random;
@@ -20,7 +17,7 @@ import org.dommons.core.convert.Converter;
 import org.dommons.core.number.Radix64;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
-import org.dommons.io.Pathfinder;
+import org.dommons.core.string.Stringure;
 import org.dommons.security.cipher.MD5Cipher;
 
 /**
@@ -98,7 +95,7 @@ public class UniQueness {
 		val = hi | (val & (hi - 1));
 		if (hex) {
 			String v = null;
-			v = Radix64.toHex(val);
+			v = Radix64.toHex(val).toLowerCase();
 			builder.append(v, 1, v.length());
 		} else {
 			builder.append(Radix64.toString(val, 62));
@@ -110,20 +107,8 @@ public class UniQueness {
 	 * @return 种子数据
 	 */
 	private static byte[] load() {
-		URL url = Pathfinder.getResource("uuid.seed");
-		if (url != null) {
-			try {
-				InputStream in = url.openStream();
-				try {
-					byte[] b = new byte[6];
-					if (in.read(b) > 0) return b;
-				} finally {
-					if (in != null) in.close();
-				}
-			} catch (IOException e) {
-			}
-		}
-		return null;
+		String p = UniQueness.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		return MD5Cipher.encode(Stringure.toBytes(p, Stringure.utf_8));
 	}
 
 	/** 基础数据 */
@@ -153,13 +138,14 @@ public class UniQueness {
 		base = new byte[12];
 		time = new long[2];
 
+		int l = 0;
 		if (seed != null && seed.length >= 2) {
-			int l = Math.min(6, seed.length);
+			l = Math.min(4, seed.length);
 			System.arraycopy(seed, 0, base, 0, l);
-		} else {
-			for (int i = 0; i < 6; i++) {
+		}
+		if (l < 6) {
+			for (int i = l; i < 6; i++)
 				base[i] = random();
-			}
 		}
 		System.arraycopy(address(), 0, base, 6, 6);
 	}
@@ -177,7 +163,7 @@ public class UniQueness {
 	 * @return 唯一编号
 	 */
 	public String generate() {
-		return MD5Cipher.encodeHex(generateData());
+		return MD5Cipher.encodeHex(generateData()).toLowerCase();
 	}
 
 	/**
@@ -189,8 +175,8 @@ public class UniQueness {
 		byte[] data = new byte[b.length + 14];
 
 		int r = rd.nextInt();
-		data[0] = (byte) r;
-		data[1] = (byte) (r >> 8);
+		data[0] = (byte) (r & 0xff);
+		data[1] = (byte) ((r >> 8) & 0xff);
 
 		System.arraycopy(base, 0, data, 2, 12);
 		System.arraycopy(b, 0, data, 14, b.length);
