@@ -33,15 +33,33 @@ public class Filenvironment {
 		if (f == null) {
 			URL[] us = Pathfinder.getResources("org/dommons/io/*.file.env");
 			if (us != null) {
+
 				for (URL u : us) {
 					f = create(u);
 					if (f != null) break;
 				}
 			}
+			if (f == null) {
+				Class c = Environments.findClass("org.dommons.android.io.AndroidFiles");
+				f = create(c);
+			}
 			if (f == null) f = new Filenvironment();
 			ref = new Softref(f);
 		}
 		return f;
+	}
+
+	/**
+	 * 创建文件系统环境
+	 * @param c 类
+	 * @return 文件系统环境
+	 */
+	static Filenvironment create(Class c) {
+		try {
+			if (c != null && Filenvironment.class.isAssignableFrom(c)) return (Filenvironment) c.newInstance();
+		} catch (Throwable t) {
+		}
+		return null;
 	}
 
 	/**
@@ -59,10 +77,8 @@ public class Filenvironment {
 				String line = null;
 				while (!Stringure.isEmpty(line = r.readLine())) {
 					Class c = Environments.findClass(line);
-					try {
-						if (c != null && Filenvironment.class.isAssignableFrom(c)) return (Filenvironment) c.newInstance();
-					} catch (Throwable t) {
-					}
+					Filenvironment f = create(c);
+					if (f != null) return f;
 				}
 			} finally {
 				if (is != null) is.close();
