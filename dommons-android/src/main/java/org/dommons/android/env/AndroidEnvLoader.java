@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.dommons.android.ContextSet;
 import org.dommons.core.Silewarner;
 import org.dommons.core.collections.map.DataPair;
 import org.dommons.core.collections.map.Mapped;
@@ -86,7 +87,7 @@ public class AndroidEnvLoader extends EnvironmentLoader {
 	}
 
 	private String apk() {
-		String path = path(getClass().getProtectionDomain().getCodeSource().getLocation());
+		String path = ContextSet.get().getPackageResourcePath();
 		if (Stringure.trim(path).toLowerCase().endsWith(".apk")) return path;
 		return null;
 	}

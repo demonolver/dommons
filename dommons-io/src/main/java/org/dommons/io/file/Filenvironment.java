@@ -85,4 +85,12 @@ public class Filenvironment {
 	public File cacheFile(String name) {
 		return new File(Environments.getProperty("java.io.tmpdir"), name);
 	}
+
+	/**
+	 * 获取运行包位置
+	 * @return 位置
+	 */
+	public String getLocation() {
+		return Pathfinder.getPath(getClass().getProtectionDomain().getCodeSource().getLocation());
+	}
 }

@@ -18,6 +18,7 @@ import org.dommons.core.number.Radix64;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.string.Stringure;
+import org.dommons.io.file.Filenvironment;
 import org.dommons.security.cipher.MD5Cipher;
 
 /**
@@ -107,7 +108,8 @@ public class UniQueness {
 	 * @return 种子数据
 	 */
 	private static byte[] load() {
-		String p = UniQueness.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String p = Filenvironment.instance().getLocation();
+		if (Stringure.isEmpty(p)) return null;
 		return MD5Cipher.encode(Stringure.toBytes(p, Stringure.utf_8));
 	}
 
