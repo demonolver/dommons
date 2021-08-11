@@ -38,6 +38,19 @@ public class ProxyFactory {
 	}
 
 	/**
+	 * 是否代理类型
+	 * @param clazz 类型
+	 * @return 是否代理
+	 */
+	public static boolean isProxyClass(Class<?> clazz) {
+		if (clazz == null) return false;
+		if (existClass("org.springframework.cglib.proxy.Enhancer") && SpringProxy.isProxyClass(clazz)) return true;
+		else if (existClass("net.sf.cglib.proxy.Enhancer") && CglibProxy.isProxyClass(clazz)) return true;
+		else if (existClass("javassist.util.proxy.ProxyFactory") && JavassistProxy.isProxyClass(clazz)) return true;
+		return Proxy.isProxyClass(clazz);
+	}
+
+	/**
 	 * 创建代理实例
 	 * @param h 代理处理器
 	 * @param sc 父数

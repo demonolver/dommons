@@ -32,6 +32,15 @@ class CglibProxy {
 	}
 
 	/**
+	 * 是否代理类
+	 * @param clazz 类型
+	 * @return 是、否
+	 */
+	public static boolean isProxyClass(Class<?> clazz) {
+		return Enhancer.isEnhanced(clazz);
+	}
+
+	/**
 	 * CGlib 代理处理器
 	 * @author demon 2017-12-25
 	 */
