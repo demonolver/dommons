@@ -3,6 +3,8 @@
  */
 package org.dommons.core.proxy;
 
+import javassist.util.proxy.ProxyFactory;
+
 /**
  * Javassist 代理实现
  * @author demon 2021-08-11
@@ -15,6 +17,6 @@ class JavassistProxy {
 	 * @return 是否代理
 	 */
 	public static boolean isProxyClass(Class<?> clazz) {
-		return ProxyFactory.isProxy(clazz);
+		return ProxyFactory.isProxyClass(clazz);
 	}
 }
