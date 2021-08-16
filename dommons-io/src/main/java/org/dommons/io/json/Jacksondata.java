@@ -311,7 +311,7 @@ public class Jacksondata {
 				} else if (c == ',' && sgs.isEmpty()) {
 					break v;
 				}
-				buf.append(c);
+				if (!sgs.isEmpty()) buf.append(c);
 				continue;
 			}
 			String v = buf.toString();
