@@ -305,19 +305,17 @@ public class Jacksondata {
 					else if (s == null) sgs.push(c);
 				} else if (c == '{' || c == '[') {
 					sgs.push(c);
-				} else if (c == '}' && Character.valueOf('{').equals(sgs.peek())) {
+				} else if (c == '}' && Character.valueOf('{').equals(sgs.peek()) && (f = true)) {
 					sgs.pop();
-				} else if (c == ']' && Character.valueOf('[').equals(sgs.peek())) {
+				} else if (c == ']' && Character.valueOf('[').equals(sgs.peek()) && (f = true)) {
 					sgs.pop();
 				} else if (!Character.isWhitespace(c) && sgs.isEmpty() && buf.length() == 0) {
 					sgs.push(' ');
-				} else if (Character.isWhitespace(c) && !sgs.isEmpty()) {
-					Character s = sgs.peek();
-					if (Character.isWhitespace(s)) sgs.pop();
+				} else if (Character.isWhitespace(c) && !sgs.isEmpty() && Character.isWhitespace(sgs.peek())) {
+					sgs.pop();
 				} else if (c == ',') {
 					if (sgs.isEmpty()) break v;
-					Character s = sgs.peek();
-					if (Character.isWhitespace(s)) {
+					if (Character.isWhitespace(sgs.peek())) {
 						sgs.pop();
 						break v;
 					}
