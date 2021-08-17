@@ -278,6 +278,7 @@ public class Jacksondata {
 		for (int i = 0, l = r.length(); i <= l; i++) {
 			if (i < l) v: {
 				char c = r.charAt(i);
+				boolean f = false;
 				if (force || c == '\\') {
 					force = !force;
 				} else if (kp) {
@@ -300,18 +301,28 @@ public class Jacksondata {
 					}
 				} else if (c == '\'' || c == '\"') {
 					Character s = sgs.peek();
-					if (Character.valueOf(c).equals(s)) sgs.pop();
-					else sgs.push(c);
+					if (Character.valueOf(c).equals(s) && (f = true)) sgs.pop();
+					else if (s == null) sgs.push(c);
 				} else if (c == '{' || c == '[') {
 					sgs.push(c);
 				} else if (c == '}' && Character.valueOf('{').equals(sgs.peek())) {
 					sgs.pop();
 				} else if (c == ']' && Character.valueOf('[').equals(sgs.peek())) {
 					sgs.pop();
-				} else if (c == ',' && sgs.isEmpty()) {
-					break v;
+				} else if (!Character.isWhitespace(c) && sgs.isEmpty() && buf.length() == 0) {
+					sgs.push(' ');
+				} else if (Character.isWhitespace(c) && !sgs.isEmpty()) {
+					Character s = sgs.peek();
+					if (Character.isWhitespace(s)) sgs.pop();
+				} else if (c == ',') {
+					if (sgs.isEmpty()) break v;
+					Character s = sgs.peek();
+					if (Character.isWhitespace(s)) {
+						sgs.pop();
+						break v;
+					}
 				}
-				if (!sgs.isEmpty()) buf.append(c);
+				if (!sgs.isEmpty() || f) buf.append(c);
 				continue;
 			}
 			String v = buf.toString();
