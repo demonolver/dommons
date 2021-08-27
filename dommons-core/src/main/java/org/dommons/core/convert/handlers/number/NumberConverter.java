@@ -28,6 +28,7 @@ import org.dommons.core.convert.handlers.AbstractLocaleConverter;
 import org.dommons.core.format.number.NumericFormat;
 import org.dommons.core.format.number.RadixFormat;
 import org.dommons.core.string.Stringure;
+import org.dommons.core.util.Arrayard;
 
 /**
  * 抽象数字转换器
@@ -72,6 +73,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 				String format = props.getProperty("format." + n);
 				String type = props.getProperty(Stringure.join('.', "format", n, "type"), "numeric");
 				String current = props.getProperty(Stringure.join('.', "format", n, "locale.current"));
+				String excludes = props.getProperty(Stringure.join('.', "format", n, "locale.exclude"));
 				String locale = Stringure.one(current, props.getProperty(Stringure.join('.', "format", n, "locale")));
 
 				try {
@@ -79,7 +81,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 					if (pattern != null && format != null) {
 						Pattern key = Pattern.compile(pattern);
 						NumberFormat nf = "radix".equals(type) ? new RadixFormat(format) : new NumericFormat(format, locale(locale));
-						formats.put(n, new StringNumeric(key, nf, current));
+						formats.put(n, new StringNumeric(key, nf, split(current), split(excludes)));
 
 						Integer p = Integer.valueOf(prio);
 						Collection<String> ps = prios.get(p);
@@ -109,6 +111,17 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 	 */
 	static Properties load() throws IOException {
 		return load(NumberConverter.class, "number.converters");
+	}
+
+	static String[] split(String s) {
+		String[] ss = Stringure.split(s, ',');
+		if (ss == null) return null;
+		Collection<String> list = new HashSet<String>();
+		for (String st : ss) {
+			if (Stringure.isEmpty(st)) continue;
+			list.add(Stringure.trim(st).toLowerCase());
+		}
+		return list.isEmpty() ? null : Arrayard.toArray(list, String.class);
 	}
 
 	/**
@@ -172,18 +185,21 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 
 		private final Pattern pattern;
 		private final NumberFormat format;
-		private final String current;
+		private final String[] includes;
+		private final String[] excludes;
 
 		/**
 		 * 构造函数
 		 * @param pattern 正则
 		 * @param format 数值格式
-		 * @param current 当前语言
+		 * @param includes 包含语言集
+		 * @param excludes 排除语言集
 		 */
-		public StringNumeric(Pattern pattern, NumberFormat format, String current) {
+		public StringNumeric(Pattern pattern, NumberFormat format, String[] includes, String[] excludes) {
 			this.pattern = pattern;
 			this.format = format;
-			this.current = current;
+			this.includes = includes;
+			this.excludes = excludes;
 		}
 
 		public boolean equals(Object o) {
@@ -201,8 +217,30 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		 * @return 是、否
 		 */
 		public boolean matches(String value, Locale locale) {
-			if (!Stringure.isEmpty(current) && !locale.toString().toLowerCase().startsWith(current)) return false;
+			if (!matchLocale(locale)) return false;
 			return pattern.matcher(value).matches();
+		}
+
+		/**
+		 * @param locale
+		 * @return
+		 */
+		protected boolean matchLocale(Locale locale) {
+			if (includes != null) return match(locale, includes);
+			if (excludes != null) return !match(locale, excludes);
+			return true;
+		}
+
+		/**
+		 * @param locale
+		 * @param ls
+		 * @return
+		 */
+		protected boolean match(Locale locale, String[] ls) {
+			String s = Stringure.join('_', locale.getLanguage(), locale.getCountry()).toLowerCase();
+			for (String l : ls)
+				if (s.startsWith(l)) return true;
+			return false;
 		}
 
 		/**
