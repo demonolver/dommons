@@ -3,6 +3,7 @@
  */
 package org.dommons.log;
 
+import org.dommons.core.env.ProguardIgnore;
 import org.dommons.core.format.text.MessageFormat;
 import org.dommons.io.message.MessageTemplate;
 
@@ -10,7 +11,7 @@ import org.dommons.io.message.MessageTemplate;
  * 日志记录器
  * @author Demon 2011-10-19
  */
-public interface Logger {
+public interface Logger extends ProguardIgnore {
 
 	/**
 	 * 记录调试日志

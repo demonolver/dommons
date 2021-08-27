@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 
+import org.dommons.core.env.ProguardIgnore;
 import org.dommons.dom.bean.XDocument;
 import org.xml.sax.SAXException;
 
@@ -16,7 +17,7 @@ import org.xml.sax.SAXException;
  * XML 文档工厂
  * @author Demon 2011-11-1
  */
-public abstract class XDocumentFactory implements XValidation {
+public abstract class XDocumentFactory implements XValidation, ProguardIgnore {
 
 	private static XDocumentFactory instance;
 
