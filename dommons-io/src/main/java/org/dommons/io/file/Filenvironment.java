@@ -33,7 +33,6 @@ public class Filenvironment {
 		if (f == null) {
 			URL[] us = Pathfinder.getResources("org/dommons/io/*.file.env");
 			if (us != null) {
-
 				for (URL u : us) {
 					f = create(u);
 					if (f != null) break;

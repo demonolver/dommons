@@ -21,6 +21,7 @@ import java.util.zip.ZipFile;
 import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
 import org.dommons.core.Silewarner;
+import org.dommons.core.env.ResourcesFind;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Arrayard;
 import org.dommons.io.coder.URLCoder;
@@ -264,7 +265,7 @@ public final class Pathfinder {
 		if (path == null) return null;
 		path = path.trim();
 		cl = cl == null ? Pathfinder.class.getClassLoader() : cl;
-		return cl.getResource(path);
+		return ResourcesFind.getResource(cl, path);
 	}
 
 	/**
@@ -425,7 +426,7 @@ public final class Pathfinder {
 		}
 		Enumeration<URL> en;
 		try {
-			en = cl.getResources(path);
+			en = ResourcesFind.getResources(cl, path);
 			while (en.hasMoreElements()) {
 				innerResources(en.nextElement(), pattern, urls);
 			}

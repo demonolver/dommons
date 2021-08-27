@@ -54,8 +54,8 @@ class DefaultEnvLoader extends EnvironmentLoader {
 	 * @throws IOException
 	 */
 	Enumeration<URL> gets(String path) throws IOException {
-		Enumeration<URL> en = Environments.class.getClassLoader().getResources(path);
-		if (en == null) en = Thread.currentThread().getContextClassLoader().getResources(path);
+		Enumeration<URL> en = ResourcesFind.getResources(Environments.class.getClassLoader(), path);
+		if (en == null) en = ResourcesFind.getResources(Thread.currentThread().getContextClassLoader(), path);
 		return en;
 	}
 

@@ -81,9 +81,7 @@ public final class _EnvFactory {
 		Collection<String> ls = new LinkedHashSet();
 		try {
 			ClassLoader cl = Thread.currentThread().getContextClassLoader();
-			Enumeration<URL> en = null;
-			if (cl == null) en = ClassLoader.getSystemResources("META-INF/" + EnvironmentLoader.class.getName());
-			else en = cl.getResources("META-INF/" + EnvironmentLoader.class.getName());
+			Enumeration<URL> en = ResourcesFind.getResources(cl, "META-INF/" + EnvironmentLoader.class.getName());
 			while (en != null && en.hasMoreElements()) {
 				URL u = en.nextElement();
 				if (u == null) continue;

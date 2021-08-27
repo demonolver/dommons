@@ -22,6 +22,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.dommons.core.Assertor;
 import org.dommons.core.Silewarner;
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.env.ResourcesFind;
 import org.dommons.core.util.Arrayard;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -87,7 +88,8 @@ final class ConverterMap {
 	static void load(Map<Class, MapNode> map) throws Exception {
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		// 加载扩展自定义配置
-		for (Enumeration<URL> en = Converter.class.getClassLoader().getResources("converters.map.xml"); en.hasMoreElements();) {
+		for (Enumeration<URL> en = ResourcesFind.getResources(Converter.class.getClassLoader(), "converters.map.xml"); en
+				.hasMoreElements();) {
 			URL url = en.nextElement();
 			try {
 				load(map, url, builder);
@@ -95,7 +97,7 @@ final class ConverterMap {
 				Silewarner.warn(ConverterMap.class, "Load extend xml [" + url + "] fail", e);
 			}
 		}
-		for (Enumeration<URL> en = Thread.currentThread().getContextClassLoader().getResources("converters.map.xml"); en
+		for (Enumeration<URL> en = ResourcesFind.getResources(Thread.currentThread().getContextClassLoader(), "converters.map.xml"); en
 				.hasMoreElements();) {
 			URL url = en.nextElement();
 			try {
@@ -106,7 +108,7 @@ final class ConverterMap {
 		}
 		// 读取默认配置
 		try {
-			load(map, ConverterMap.class.getResource("converters.map"), builder);
+			load(map, ResourcesFind.getResource(ConverterMap.class.getClassLoader(), "org/dommons/core/convert/converters.map"), builder);
 		} catch (Exception e) {
 			Silewarner.warn(ConverterMap.class, "Load default xml fail", e);
 		}
