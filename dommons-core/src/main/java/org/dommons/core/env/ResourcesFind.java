@@ -16,9 +16,10 @@ import org.dommons.core.Environments;
 public class ResourcesFind {
 
 	/**
-	 * @param cl
-	 * @param name
-	 * @return
+	 * 获取资源集
+	 * @param cl 类加载
+	 * @param name 资源名
+	 * @return 资源集
 	 * @throws IOException
 	 */
 	public static Enumeration<URL> getResources(ClassLoader cl, String name) throws IOException {
@@ -27,9 +28,9 @@ public class ResourcesFind {
 
 	/**
 	 * 获取资源
-	 * @param cl 
-	 * @param name
-	 * @return
+	 * @param cl 类加载
+	 * @param name 资源名
+	 * @return 资源路径
 	 */
 	public static URL getResource(ClassLoader cl, String name) {
 		return get().resource(cl, name);
@@ -53,10 +54,12 @@ public class ResourcesFind {
 	}
 
 	protected Enumeration<URL> resources(ClassLoader cl, String name) throws IOException {
-		return cl.getResources(name);
+		if (cl == null) return ClassLoader.getSystemResources(name);
+		else return cl.getResources(name);
 	}
 
 	protected URL resource(ClassLoader cl, String name) {
-		return cl.getResource(name);
+		if (cl == null) return ClassLoader.getSystemResource(name);
+		else return cl.getResource(name);
 	}
 }
