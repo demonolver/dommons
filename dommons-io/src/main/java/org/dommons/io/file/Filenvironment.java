@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 import org.dommons.core.Environments;
+import org.dommons.core.env.ProguardIgnore;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.string.Stringure;
@@ -20,7 +21,7 @@ import org.dommons.io.Pathfinder;
  * 文件系统环境
  * @author Demon 2015-7-7
  */
-public class Filenvironment {
+public class Filenvironment implements ProguardIgnore {
 
 	static Ref<Filenvironment> ref;
 
