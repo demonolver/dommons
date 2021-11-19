@@ -33,6 +33,21 @@ public class Jacksondata {
 	private static Ref<PropertyNamingStrategyBase> pref;
 
 	/**
+	 * 配置转换器
+	 * @param mapper 转换器实例
+	 * @param underscore 大写属性名是否转成小写下划线
+	 */
+	public static void configure(ObjectMapper mapper, boolean underscore) {
+		if (mapper == null) return;
+		mapper.configure(com.fasterxml.jackson.databind.MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, false);
+		mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+		mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+		if (underscore) mapper.setPropertyNamingStrategy(strategy());
+	}
+
+	/**
 	 * 转换小写&下划线属性名
 	 * @param name 属性名
 	 * @return 新属性名
@@ -53,7 +68,7 @@ public class Jacksondata {
 
 	/**
 	 * 获取数据转换器
-	 * @param underscore 大写属性名是转成小写下划线
+	 * @param underscore 大写属性名是否转成小写下划线
 	 * @return 转换器
 	 */
 	public static ObjectMapper mapper(boolean underscore) {
@@ -61,12 +76,7 @@ public class Jacksondata {
 		ObjectMapper mapper = oms.get(b);
 		if (mapper == null) {
 			mapper = new ObjectMapper();
-			mapper.configure(com.fasterxml.jackson.databind.MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, false);
-			mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-			mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-			mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
-			if (underscore) mapper.setPropertyNamingStrategy(strategy());
+			configure(mapper, underscore);
 			oms.put(b, mapper);
 		}
 		return mapper;
