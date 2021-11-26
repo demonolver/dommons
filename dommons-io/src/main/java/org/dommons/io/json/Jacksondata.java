@@ -6,21 +6,24 @@ package org.dommons.io.json;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
-import org.dommons.core.collections.stack.LinkedStack;
-import org.dommons.core.collections.stack.Stack;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.string.Stringure;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
 
@@ -108,9 +111,28 @@ public class Jacksondata {
 	 */
 	public static Map<String, String> split(String json) {
 		if (json == null || !json.startsWith("{") || !json.endsWith("}")) return null;
-		json = Stringure.subString(json, 1, -1);
+		ObjectMapper mapper = mapper();
+		ObjectNode obj = null;
+		read: {
+			try {
+				JsonNode node = mapper.readTree(json);
+				if (node instanceof ObjectNode) {
+					obj = (ObjectNode) node;
+					break read;
+				}
+			} catch (IOException e) { // ignored
+			}
+			return null;
+		}
+
 		Map<String, String> map = new LinkedHashMap();
-		split(json, map);
+		for (Iterator<Entry<String, JsonNode>> it = obj.fields(); it.hasNext();) {
+			Entry<String, JsonNode> en = it.next();
+			try {
+				map.put(en.getKey(), mapper.writeValueAsString(en.getValue()));
+			} catch (JsonProcessingException e) { // ignored
+			}
+		}
 		return map;
 	}
 
@@ -275,70 +297,4 @@ public class Jacksondata {
 		return pns;
 	}
 
-	/**
-	 * 拆分响应内容
-	 * @param r 内容
-	 * @param map 目标集
-	 */
-	static void split(String r, Map<String, String> map) {
-		StringBuilder buf = new StringBuilder();
-		String key = null;
-		Stack<Character> sgs = new LinkedStack();
-		boolean force = false, kp = true;
-		for (int i = 0, l = r.length(); i <= l; i++) {
-			if (i < l) v: {
-				char c = r.charAt(i);
-				boolean f = false;
-				if (force || c == '\\') {
-					force = !force;
-				} else if (kp) {
-					if (c == '\'' || c == '\"') {
-						Character s = sgs.peek();
-						if (Character.valueOf(c).equals(s)) {
-							sgs.pop();
-							if (sgs.isEmpty()) {
-								key = buf.toString();
-								buf.setLength(0);
-								continue;
-							}
-						} else {
-							sgs.push(c);
-							if (s == null) continue;
-						}
-					} else if (c == ':' && sgs.isEmpty() && !Stringure.isEmpty(key)) {
-						kp = false;
-						continue;
-					}
-				} else if (c == '\'' || c == '\"') {
-					Character s = sgs.peek();
-					if (Character.valueOf(c).equals(s) && (f = true)) sgs.pop();
-					else if (s == null) sgs.push(c);
-				} else if (c == '{' || c == '[') {
-					sgs.push(c);
-				} else if (c == '}' && Character.valueOf('{').equals(sgs.peek()) && (f = true)) {
-					sgs.pop();
-				} else if (c == ']' && Character.valueOf('[').equals(sgs.peek()) && (f = true)) {
-					sgs.pop();
-				} else if (!Character.isWhitespace(c) && sgs.isEmpty() && buf.length() == 0) {
-					sgs.push(' ');
-				} else if (Character.isWhitespace(c) && !sgs.isEmpty() && Character.isWhitespace(sgs.peek())) {
-					sgs.pop();
-				} else if (c == ',') {
-					if (sgs.isEmpty()) break v;
-					if (Character.isWhitespace(sgs.peek())) {
-						sgs.pop();
-						break v;
-					}
-				}
-				if (!sgs.isEmpty() || f) buf.append(c);
-				continue;
-			}
-			String v = buf.toString();
-			buf.setLength(0);
-			kp = true;
-			force = false;
-			if (!Stringure.isEmpty(key)) map.put(key, v);
-			key = null;
-		}
-	}
 }
