@@ -7,12 +7,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.cache.MemcacheMap;
+import org.dommons.core.env.ProguardIgnore;
 
 /**
  * 日志工厂
  * @author Demon 2011-10-25
  */
-public abstract class LoggerFactory {
+public abstract class LoggerFactory implements ProguardIgnore {
 
 	private static LoggerFactory instance;
 	private static final Map<Object, LoggerWrapper> wrappers = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
