@@ -57,6 +57,12 @@ public final class Environments {
 				String language = getProperty(key);
 				try {
 					if (language != null) {
+						try {
+							Locale l = Locale.forLanguageTag(language);
+							if (l != null) return l;
+						} catch (Throwable t) { // ignored
+						}
+
 						String lang = Stringure.trim(language).replace('-', '_');
 						Locale[] ls = Locale.getAvailableLocales();
 						for (Locale l : ls) {
