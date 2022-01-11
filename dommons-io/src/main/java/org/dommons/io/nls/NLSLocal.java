@@ -126,6 +126,10 @@ public class NLSLocal {
 	 */
 	public static Locale parse(String lang) {
 		Locale l = ls().get(Stringure.trim(lang));
+		try {
+			if (l == null) l = Locale.forLanguageTag(lang.replace('_', '-'));
+		} catch (Throwable t) { // ignored
+		}
 		return l == null ? null : new Locale(l.getLanguage(), l.getCountry(), l.getVariant());
 	}
 
