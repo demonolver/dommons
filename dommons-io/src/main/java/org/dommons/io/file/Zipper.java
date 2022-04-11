@@ -202,6 +202,20 @@ public final class Zipper {
 	}
 
 	/**
+	 * 形似 GZIP 格式内容
+	 * @param bytes 内容
+	 * @return 是、否
+	 */
+	public static boolean likeGzip(byte[] bytes) {
+		byte[] head = { 0x1f, (byte) 0x8b, 0x08 };
+		if (bytes.length < head.length) return false;
+		for (int i = 0, l = head.length; i < l; i++) {
+			if (bytes[i] != head[i]) return false;
+		}
+		return true;
+	}
+
+	/**
 	 * 解压缩
 	 * @param zip 压缩文件
 	 * @param target 目标目录
