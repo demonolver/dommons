@@ -4,6 +4,7 @@
 package org.dommons.core.util.beans;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import org.dommons.core.convert.Converter;
 import org.dommons.core.ref.Ref;
@@ -39,6 +40,7 @@ public class BeanProperty {
 		else if (!m.getDeclaringClass().isInstance(o))
 			throw new RuntimeException("not instance of " + m.getDeclaringClass().getSimpleName());
 		try {
+			if (!Modifier.isPublic(o.getClass().getModifiers())) m.setAccessible(true);
 			return m.invoke(o);
 		} catch (Throwable t) {
 			throw Converter.F.convert(t, RuntimeException.class);
@@ -99,6 +101,7 @@ public class BeanProperty {
 			throw new RuntimeException("not instance of " + m.getDeclaringClass().getSimpleName());
 		value = Converter.P.convert(value, m.getParameterTypes()[0]);
 		try {
+			if (!Modifier.isPublic(o.getClass().getModifiers())) m.setAccessible(true);
 			m.invoke(o, value);
 		} catch (Throwable t) {
 			throw Converter.F.convert(t, RuntimeException.class);
