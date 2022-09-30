@@ -155,15 +155,15 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 		last(null);
 
 		int[] result = null;
-		long time = System.currentTimeMillis();
+		long time = conn.timestamp();
 		SQLException se = null;
 		try {
 			result = super.executeBatch();
-			time = System.currentTimeMillis() - time;
+			time = conn.timestamp() - time;
 			return result;
 		} catch (SQLException e) {
 			se = e;
-			time = System.currentTimeMillis() - time;
+			time = conn.timestamp() - time;
 			throw transform(e, batchs == null ? null : batchs.toArray());
 		} finally {
 			logBatchs(se, toResult(result), time);
@@ -302,17 +302,18 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 		String s = String.valueOf(sql);
 		if (!s.endsWith(";")) s += ';';
 
+		Number mills = conn.toMillis(time);
 		String connectID = conn.unique(conn.connectID);
 		if (se == null) {
 			int r = Converter.F.convert(result, int.class);
-			if (time < time_limit && r < count_limit) {
-				ShowableConnection.logger.debug(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, time);
+			if (mills.intValue() < time_limit && r < count_limit) {
+				ShowableConnection.logger.debug(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, mills);
 			} else {
-				ShowableConnection.logger.info(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, time);
+				ShowableConnection.logger.info(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, mills);
 			}
 		} else {
 			ShowableConnection.logger.warn(JDBCMessages.m.sql_execute_error(), conn.name, connectID, s, se.getErrorCode(), se.getSQLState(),
-				se.getMessage(), time);
+				se.getMessage(), mills);
 		}
 	}
 

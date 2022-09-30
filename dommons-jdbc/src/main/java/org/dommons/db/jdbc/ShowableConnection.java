@@ -236,6 +236,23 @@ public class ShowableConnection extends EssentialConnection {
 	}
 
 	/**
+	 * 获取时间戳
+	 * @return 时间戳
+	 */
+	protected long timestamp() {
+		return System.currentTimeMillis();
+	}
+
+	/**
+	 * 转换时间差为毫秒
+	 * @param time 时间差
+	 * @return 毫秒值
+	 */
+	protected Number toMillis(long time) {
+		return Long.valueOf(time);
+	}
+
+	/**
 	 * 生成唯一键值
 	 * @param connectID 连接ID
 	 * @return 键值

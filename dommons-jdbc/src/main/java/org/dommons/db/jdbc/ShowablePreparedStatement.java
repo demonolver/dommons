@@ -346,14 +346,14 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 
 		R r = null;
 		SQLException se = null;
-		long time = System.currentTimeMillis();
+		long time = conn.timestamp();
 		try {
 			r = execution.execute(null);
-			time = System.currentTimeMillis() - time;
+			time = conn.timestamp() - time;
 			return r;
 		} catch (SQLException e) {
 			se = e;
-			time = System.currentTimeMillis() - time;
+			time = conn.timestamp() - time;
 			throw transform(e, content);
 		} finally {
 			if (se == null && r instanceof Boolean) {
