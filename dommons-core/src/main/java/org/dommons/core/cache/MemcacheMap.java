@@ -219,7 +219,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 				MemCleanThread ct = MemCleanThread.t();
 				if (ct == null) return;
 				if (ct.cs != null && !ct.cs.containsKey(key)) ct.cs.put(key, map);
-				if (Randoms.randomInteger(5) == 4) ct.notifyTo();
+				else if (Randoms.randomInteger(5) == 4) ct.notifyTo();
 			} catch (Throwable t) { // ignored
 			}
 		}
@@ -314,8 +314,10 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 			long now = System.currentTimeMillis(), last = time.get();
 			if (now - last < limit) return;
 			else if (!time.compareAndSet(last, now)) return;
-			if (thread == null) start();
-			else this.notify();
+			synchronized (this) {
+				if (thread == null) start();
+				else this.notify();
+			}
 		}
 
 		/**
