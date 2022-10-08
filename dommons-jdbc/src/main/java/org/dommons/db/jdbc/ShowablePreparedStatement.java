@@ -359,8 +359,8 @@ class ShowablePreparedStatement<C extends ShowableConnection> extends ShowableSt
 			throw transform(e, content);
 		} finally {
 			if (se == null && r instanceof Boolean) registerLast(content, (Boolean) r, time);
-			else if (se == null && r instanceof ResultSet) onExecute(content, se, count((ResultSet) r), time, true);
-			else onExecute(content, se, r, time, Boolean.TRUE.equals(select));
+			else if (se == null && r instanceof ResultSet) onExecute(content, se, count((ResultSet) r), time, Boolean.TRUE);
+			else onExecute(content, se, r, time, tryAssert(select, r));
 		}
 	}
 

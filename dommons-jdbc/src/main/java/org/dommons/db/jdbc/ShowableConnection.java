@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
+import org.dommons.core.util.Arrayard;
 import org.dommons.io.net.UniQueness;
 import org.dommons.io.nls.NLSItem;
 import org.dommons.io.prop.Bundles;
@@ -123,21 +125,23 @@ public class ShowableConnection extends EssentialConnection {
 	}
 
 	public void close() throws SQLException {
+		long s = timestamp();
 		try {
 			super.close();
-			onAction(ConnectionAction.CLOSE);
+			onAction(ConnectionAction.CLOSE, toMillis(timestamp() - s));
 		} catch (SQLException e) {
-			onAction(ConnectionAction.CLOSE, e);
+			onAction(ConnectionAction.CLOSE, e, toMillis(timestamp() - s));
 			throw e;
 		}
 	}
 
 	public void commit() throws SQLException {
+		long s = timestamp();
 		try {
 			super.commit();
-			onAction(ConnectionAction.COMMIT);
+			onAction(ConnectionAction.COMMIT, toMillis(timestamp() - s));
 		} catch (SQLException e) {
-			onAction(ConnectionAction.COMMIT, e);
+			onAction(ConnectionAction.COMMIT, e, toMillis(timestamp() - s));
 			throw e;
 		}
 	}
@@ -199,31 +203,34 @@ public class ShowableConnection extends EssentialConnection {
 	}
 
 	public void rollback() throws SQLException {
+		long s = timestamp();
 		try {
 			super.rollback();
-			onAction(ConnectionAction.ROLLBACK);
+			onAction(ConnectionAction.ROLLBACK, toMillis(timestamp() - s));
 		} catch (SQLException e) {
-			onAction(ConnectionAction.ROLLBACK, e);
+			onAction(ConnectionAction.ROLLBACK, e, toMillis(timestamp() - s));
 			throw e;
 		}
 	}
 
 	public void rollback(Savepoint savepoint) throws SQLException {
+		long s = timestamp();
 		try {
 			super.rollback(savepoint);
-			onAction(ConnectionAction.ROLLBACK);
+			onAction(ConnectionAction.ROLLBACK, toMillis(timestamp() - s));
 		} catch (SQLException e) {
-			onAction(ConnectionAction.ROLLBACK, e);
+			onAction(ConnectionAction.ROLLBACK, e, toMillis(timestamp() - s));
 			throw e;
 		}
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
+		long s = timestamp();
 		try {
 			super.setAutoCommit(autoCommit);
-			if (!autoCommit) onAction(ConnectionAction.TRANSACTION);
+			if (!autoCommit) onAction(ConnectionAction.TRANSACTION, toMillis(timestamp() - s));
 		} catch (SQLException e) {
-			if (!autoCommit) onAction(ConnectionAction.TRANSACTION, e);
+			if (!autoCommit) onAction(ConnectionAction.TRANSACTION, e, toMillis(timestamp() - s));
 			throw e;
 		}
 	}
@@ -243,17 +250,19 @@ public class ShowableConnection extends EssentialConnection {
 	/**
 	 * 响应动作执行
 	 * @param action 动作
+	 * @param millis 耗时（毫秒）
 	 */
-	protected void onAction(ConnectionAction action) {
-		onAction(action, null);
+	protected void onAction(ConnectionAction action, Number millis) {
+		onAction(action, null, millis);
 	}
 
 	/**
 	 * 响应动作执行
 	 * @param action 动作
 	 * @param t 异常内容
+	 * @param millis 耗时（毫秒）
 	 */
-	protected void onAction(ConnectionAction action, Throwable t) {
+	protected void onAction(ConnectionAction action, Throwable t, Number millis) {
 		NLSItem msg = null;
 		if (t == null) {
 			if (action == ConnectionAction.CLOSE) msg = JDBCMessages.m.connection_close_trace();
@@ -281,7 +290,7 @@ public class ShowableConnection extends EssentialConnection {
 	 * @param sql SQL 文本
 	 * @param connectID 连接ID
 	 */
-	protected void onExecute(Object content, Object result, Number millis, boolean select, String sql, String connectID) {
+	protected void onExecute(Object content, Object result, Number millis, Boolean select, String sql, String connectID) {
 		// nothing
 	}
 
@@ -344,6 +353,32 @@ public class ShowableConnection extends EssentialConnection {
 		}
 	}
 
+	/**
+	 * 批量执行结果
+	 * @author demon 2022-10-08
+	 */
+	protected static class BatchResult {
+		protected Collection<Integer> results;
+
+		public BatchResult(int... rs) {
+			this.results = Arrayard.asList(rs);
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder buffer = new StringBuilder();
+			for (int r : results) {
+				if (buffer.length() > 0) buffer.append(',');
+				buffer.append(NumberFormat.getIntegerInstance().format(r));
+			}
+			return buffer.toString();
+		}
+	}
+
+	/**
+	 * 连接动作类型
+	 * @author demon 2022-10-08
+	 */
 	protected static enum ConnectionAction {
 		CLOSE,
 		COMMIT,
@@ -356,7 +391,7 @@ public class ShowableConnection extends EssentialConnection {
 	 * @author demon 2022-09-30
 	 */
 	protected class SQLShowableAction {
-		public void onExecute(Object sql, SQLException se, Object result, long time, boolean select) {
+		public void onExecute(Object sql, SQLException se, Object result, long time, Boolean select) {
 			// 在 SQL 语句后补上分号
 			String s = String.valueOf(sql);
 			if (!s.endsWith(";")) s += ';';

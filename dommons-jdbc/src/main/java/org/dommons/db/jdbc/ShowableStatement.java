@@ -58,15 +58,9 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 	 * @param results 批量结果
 	 * @return 结果串
 	 */
-	protected static String toResult(int... results) {
+	protected static Object toResult(int... results) {
 		if (results == null) return Stringure.empty;
-
-		StringBuilder buffer = new StringBuilder();
-		for (int r : results) {
-			if (buffer.length() > 0) buffer.append(',');
-			buffer.append(NumberFormat.getIntegerInstance().format(r));
-		}
-		return buffer.toString();
+		return new ShowableConnection.BatchResult(results);
 	}
 
 	/**
@@ -247,19 +241,19 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 		sql = SQLFormatter.format(sql);
 		R r = null;
 		SQLException se = null;
-		long time = System.currentTimeMillis();
+		long time = conn.timestamp();
 		try {
 			r = execution.execute(sql);
-			time = System.currentTimeMillis() - time;
+			time = conn.timestamp() - time;
 			return r;
 		} catch (SQLException e) {
 			se = e;
-			time = System.currentTimeMillis() - time;
+			time = conn.timestamp() - time;
 			throw transform(e, sql);
 		} finally {
 			if (se == null && r instanceof Boolean) registerLast(sql, (Boolean) r, time);
-			else if (se == null && r instanceof ResultSet) onExecute(sql, se, count((ResultSet) r), time, true);
-			else onExecute(sql, se, r, time, false);
+			else if (se == null && r instanceof ResultSet) onExecute(sql, se, count((ResultSet) r), time, Boolean.TRUE);
+			else onExecute(sql, se, r, time, tryAssert(select, r));
 		}
 	}
 
@@ -280,7 +274,10 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 					r = last[1];
 				}
 				Object robj = r instanceof ResultSet ? count((ResultSet) r) : r;
-				if (select == null) select = r instanceof ResultSet;
+				if (select == null) {
+					if (r instanceof ResultSet) select = Boolean.TRUE;
+					else select = tryAssert(select, r);
+				}
 				onExecute(last[0], null, robj, Converter.P.convert(last[2], long.class), select);
 				result = (R) r;
 			} finally {
@@ -302,7 +299,7 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 	 * @param time 运行时长
 	 */
 	protected void logBatchs(SQLException se, Object result, long time) {
-		if (batchs != null) onExecute(createBatch(batchs), se, result, time, true);
+		if (batchs != null) onExecute(createBatch(batchs), se, result, time, Boolean.FALSE);
 	}
 
 	/**
@@ -313,7 +310,7 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 	 * @param time 运行时长
 	 * @param select 是否查询
 	 */
-	protected void onExecute(Object sql, SQLException se, Object result, long time, boolean select) {
+	protected void onExecute(Object sql, SQLException se, Object result, long time, Boolean select) {
 		action.onExecute(sql, se, result, time, select);
 	}
 
@@ -351,6 +348,18 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 		} else {
 			return se;
 		}
+	}
+
+	/**
+	 * 尝试判定
+	 * @param select 是否查询
+	 * @param r 结果
+	 * @return 是否查询
+	 */
+	protected Boolean tryAssert(Boolean select, Object r) {
+		if (select != null) return select;
+		if (r instanceof Integer || Integer.TYPE.equals(r.getClass())) return Boolean.FALSE;
+		return null;
 	}
 
 	private boolean $execute(String sql) throws SQLException {
