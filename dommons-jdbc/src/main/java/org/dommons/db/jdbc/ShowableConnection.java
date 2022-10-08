@@ -125,9 +125,9 @@ public class ShowableConnection extends EssentialConnection {
 	public void close() throws SQLException {
 		try {
 			super.close();
-			trace(JDBCMessages.m.connection_close_trace());
+			onAction(ConnectionAction.CLOSE);
 		} catch (SQLException e) {
-			warn(JDBCMessages.m.connection_close_error(), e);
+			onAction(ConnectionAction.CLOSE, e);
 			throw e;
 		}
 	}
@@ -135,9 +135,9 @@ public class ShowableConnection extends EssentialConnection {
 	public void commit() throws SQLException {
 		try {
 			super.commit();
-			trace(JDBCMessages.m.transaction_commit_trace());
+			onAction(ConnectionAction.COMMIT);
 		} catch (SQLException e) {
-			warn(JDBCMessages.m.transaction_commit_error(), e);
+			onAction(ConnectionAction.COMMIT, e);
 			throw e;
 		}
 	}
@@ -201,9 +201,9 @@ public class ShowableConnection extends EssentialConnection {
 	public void rollback() throws SQLException {
 		try {
 			super.rollback();
-			trace(JDBCMessages.m.transaction_rollback_trace());
+			onAction(ConnectionAction.ROLLBACK);
 		} catch (SQLException e) {
-			warn(JDBCMessages.m.transaction_rollback_error(), e);
+			onAction(ConnectionAction.ROLLBACK, e);
 			throw e;
 		}
 	}
@@ -211,9 +211,9 @@ public class ShowableConnection extends EssentialConnection {
 	public void rollback(Savepoint savepoint) throws SQLException {
 		try {
 			super.rollback(savepoint);
-			trace(JDBCMessages.m.transaction_rollback_trace());
+			onAction(ConnectionAction.ROLLBACK);
 		} catch (SQLException e) {
-			warn(JDBCMessages.m.transaction_rollback_error(), e);
+			onAction(ConnectionAction.ROLLBACK, e);
 			throw e;
 		}
 	}
@@ -221,9 +221,9 @@ public class ShowableConnection extends EssentialConnection {
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
 		try {
 			super.setAutoCommit(autoCommit);
-			if (!autoCommit) trace(JDBCMessages.m.transaction_start_trace());
+			if (!autoCommit) onAction(ConnectionAction.TRANSACTION);
 		} catch (SQLException e) {
-			if (!autoCommit) warn(JDBCMessages.m.transaction_start_error(), e);
+			if (!autoCommit) onAction(ConnectionAction.TRANSACTION, e);
 			throw e;
 		}
 	}
@@ -238,6 +238,51 @@ public class ShowableConnection extends EssentialConnection {
 
 	protected SQLShowableAction getAction() {
 		return $action != null ? $action : ($action = buildAction());
+	}
+
+	/**
+	 * 响应动作执行
+	 * @param action 动作
+	 */
+	protected void onAction(ConnectionAction action) {
+		onAction(action, null);
+	}
+
+	/**
+	 * 响应动作执行
+	 * @param action 动作
+	 * @param t 异常内容
+	 */
+	protected void onAction(ConnectionAction action, Throwable t) {
+		NLSItem msg = null;
+		if (t == null) {
+			if (action == ConnectionAction.CLOSE) msg = JDBCMessages.m.connection_close_trace();
+			else if (action == ConnectionAction.COMMIT) msg = JDBCMessages.m.transaction_commit_trace();
+			else if (action == ConnectionAction.ROLLBACK) msg = JDBCMessages.m.transaction_rollback_trace();
+			else if (action == ConnectionAction.TRANSACTION) msg = JDBCMessages.m.transaction_start_trace();
+			else return;
+			logger.trace(msg, general.getName(), unique(connectID));
+		} else {
+			if (action == ConnectionAction.CLOSE) msg = JDBCMessages.m.connection_close_error();
+			else if (action == ConnectionAction.COMMIT) msg = JDBCMessages.m.transaction_commit_error();
+			else if (action == ConnectionAction.ROLLBACK) msg = JDBCMessages.m.transaction_rollback_error();
+			else if (action == ConnectionAction.TRANSACTION) msg = JDBCMessages.m.transaction_start_error();
+			else return;
+			logger.warn(msg, general.getName(), unique(connectID), t == null ? Stringure.empty : t.toString());
+		}
+	}
+
+	/**
+	 * 响应 SQL 执行
+	 * @param content SQL 内容
+	 * @param result 结果
+	 * @param millis 耗时（毫秒）
+	 * @param select 是否查询
+	 * @param sql SQL 文本
+	 * @param connectID 连接ID
+	 */
+	protected void onExecute(Object content, Object result, Number millis, boolean select, String sql, String connectID) {
+		// nothing
 	}
 
 	protected PreparedStatement preparedStatement(PreparedStatement pstat, String sql) {
@@ -283,23 +328,6 @@ public class ShowableConnection extends EssentialConnection {
 	}
 
 	/**
-	 * 记录跟踪信息
-	 * @param msg 信息
-	 */
-	void trace(NLSItem msg) {
-		logger.trace(msg, general.getName(), unique(connectID));
-	}
-
-	/**
-	 * 记录警告信息
-	 * @param msg 信息
-	 * @param t 异常
-	 */
-	void warn(NLSItem msg, Throwable t) {
-		logger.warn(msg, general.getName(), unique(connectID), t == null ? Stringure.empty : t.toString());
-	}
-
-	/**
 	 * 批量 SQL
 	 * @author demon 2022-09-30
 	 */
@@ -316,6 +344,13 @@ public class ShowableConnection extends EssentialConnection {
 		}
 	}
 
+	protected static enum ConnectionAction {
+		CLOSE,
+		COMMIT,
+		ROLLBACK,
+		TRANSACTION;
+	}
+
 	/**
 	 * 显 SQL 处理动作
 	 * @author demon 2022-09-30
@@ -328,7 +363,7 @@ public class ShowableConnection extends EssentialConnection {
 
 			Number millis = toMillis(time);
 			String connectID = unique(ShowableConnection.this.connectID);
-			onExecute(se, se != null ? se : result, millis, select, s, connectID);
+			ShowableConnection.this.onExecute(se, se != null ? se : result, millis, select, s, connectID);
 			if (se == null) {
 				int r = Converter.F.convert(result, int.class);
 				if (millis.intValue() < ShowableStatement.time_limit && r < ShowableStatement.count_limit) {
@@ -340,10 +375,6 @@ public class ShowableConnection extends EssentialConnection {
 				logger.warn(JDBCMessages.m.sql_execute_error(), general.getName(), connectID, s, se.getErrorCode(), se.getSQLState(),
 					se.getMessage(), millis);
 			}
-		}
-
-		protected void onExecute(Object content, Object result, Number millis, boolean select, String sql, String connectID) {
-			// nothing
 		}
 	}
 }
