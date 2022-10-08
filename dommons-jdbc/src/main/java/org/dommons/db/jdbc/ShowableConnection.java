@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,30 +76,37 @@ public class ShowableConnection extends EssentialConnection {
 		return b;
 	}
 
-	/** 数据库名称 */
-	protected String name;
-	/** 数据库类型 */
-	protected final String type;
-	/** 数据库版本 */
-	protected final String version;
+	private static DatabaseGeneral databaseGeneral(Connection conn) {
+		try {
+			DatabaseGeneral general = new DatabaseGeneral();
+			general.setName(conn.getCatalog());
+			DatabaseMetaData metaData = conn.getMetaData();
+			general.setType(metaData.getDriverName());
+			general.setVersion(metaData.getDriverVersion());
+			return general;
+		} catch (SQLException e) {
+			throw Converter.P.convert(e, RuntimeException.class);
+		}
+	}
+
+	protected final DatabaseGeneral general;
 
 	/** 连接编号 */
 	protected final String connectID;
+
+	private volatile SQLShowableAction $action;
 
 	/**
 	 * 构造函数
 	 * @param conn 数据库连接
 	 */
 	public ShowableConnection(Connection conn) {
+		this(conn, databaseGeneral(conn));
+	}
+
+	public ShowableConnection(Connection conn, DatabaseGeneral general) {
 		super(conn);
-		try {
-			this.name = conn.getCatalog();
-			DatabaseMetaData metaData = conn.getMetaData();
-			this.type = metaData.getDriverName();
-			this.version = metaData.getDriverVersion();
-		} catch (SQLException e) {
-			throw Converter.P.convert(e, RuntimeException.class);
-		}
+		this.general = general;
 		this.connectID = generateID();
 	}
 
@@ -108,13 +116,10 @@ public class ShowableConnection extends EssentialConnection {
 	 * @param name 数据库名称
 	 * @param type 数据库类型
 	 * @param version 数据库版本
+	 * @deprecated {@link #ShowableConnection(Connection, DatabaseGeneral)}
 	 */
 	public ShowableConnection(Connection conn, String name, String type, String version) {
-		super(conn);
-		this.name = name;
-		this.type = type;
-		this.version = version;
-		this.connectID = generateID();
+		this(conn, new DatabaseGeneral(name).setType(type).setVersion(version));
 	}
 
 	public void close() throws SQLException {
@@ -223,16 +228,24 @@ public class ShowableConnection extends EssentialConnection {
 		}
 	}
 
+	protected SQLShowableAction buildAction() {
+		return new SQLShowableAction();
+	}
+
 	protected CallableStatement callableStatement(CallableStatement cstat, String sql) {
-		return new ShowablePreparedStatement(cstat, this, sql);
+		return new ShowablePreparedStatement(cstat, this, sql, getAction());
+	}
+
+	protected SQLShowableAction getAction() {
+		return $action != null ? $action : ($action = buildAction());
 	}
 
 	protected PreparedStatement preparedStatement(PreparedStatement pstat, String sql) {
-		return new ShowablePreparedStatement(pstat, this, sql);
+		return new ShowablePreparedStatement(pstat, this, sql, getAction());
 	}
 
 	protected Statement statement(Statement stat) {
-		return new ShowableStatement(stat, this);
+		return new ShowableStatement(stat, this, getAction());
 	}
 
 	/**
@@ -266,7 +279,7 @@ public class ShowableConnection extends EssentialConnection {
 	 * @return 是、否
 	 */
 	boolean supportsScrollInsensitive() {
-		return supportsScrollInsensitive(name, tar);
+		return supportsScrollInsensitive(general.getName(), tar);
 	}
 
 	/**
@@ -274,7 +287,7 @@ public class ShowableConnection extends EssentialConnection {
 	 * @param msg 信息
 	 */
 	void trace(NLSItem msg) {
-		logger.trace(msg, name, unique(connectID));
+		logger.trace(msg, general.getName(), unique(connectID));
 	}
 
 	/**
@@ -283,6 +296,54 @@ public class ShowableConnection extends EssentialConnection {
 	 * @param t 异常
 	 */
 	void warn(NLSItem msg, Throwable t) {
-		logger.warn(msg, name, unique(connectID), t == null ? Stringure.empty : t.toString());
+		logger.warn(msg, general.getName(), unique(connectID), t == null ? Stringure.empty : t.toString());
+	}
+
+	/**
+	 * 批量 SQL
+	 * @author demon 2022-09-30
+	 */
+	protected static class BatchSQL {
+		protected Collection<Object> children;
+
+		public String toString() {
+			StringBuilder buffer = new StringBuilder(1024);
+			for (Object child : children) {
+				if (buffer.length() > 0) buffer.append("\n\t");
+				buffer.append(child).append(';');
+			}
+			return buffer.toString();
+		}
+	}
+
+	/**
+	 * 显 SQL 处理动作
+	 * @author demon 2022-09-30
+	 */
+	protected class SQLShowableAction {
+		public void onExecute(Object sql, SQLException se, Object result, long time, boolean select) {
+			// 在 SQL 语句后补上分号
+			String s = String.valueOf(sql);
+			if (!s.endsWith(";")) s += ';';
+
+			Number millis = toMillis(time);
+			String connectID = unique(ShowableConnection.this.connectID);
+			onExecute(se, se != null ? se : result, millis, select, s, connectID);
+			if (se == null) {
+				int r = Converter.F.convert(result, int.class);
+				if (millis.intValue() < ShowableStatement.time_limit && r < ShowableStatement.count_limit) {
+					logger.debug(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, result, millis);
+				} else {
+					logger.info(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, result, millis);
+				}
+			} else {
+				logger.warn(JDBCMessages.m.sql_execute_error(), general.getName(), connectID, s, se.getErrorCode(), se.getSQLState(),
+					se.getMessage(), millis);
+			}
+		}
+
+		protected void onExecute(Object content, Object result, Number millis, boolean select, String sql, String connectID) {
+			// nothing
+		}
 	}
 }

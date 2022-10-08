@@ -24,13 +24,14 @@ import java.util.Map;
 import org.dommons.core.Environments;
 import org.dommons.core.convert.Converter;
 import org.dommons.db.jdbc.SQLFormatter.SQLFormatFilter;
+import org.dommons.db.jdbc.ShowableConnection.SQLShowableAction;
 import org.dommons.io.prop.Bundles;
 
 /**
  * 显 SQL 预编译数据库连接状态
  * @author Demon 2012-2-1
  */
-class ShowablePreparedStatement extends ShowableStatement implements PreparedStatement {
+class ShowablePreparedStatement<C extends ShowableConnection> extends ShowableStatement<C> implements PreparedStatement {
 
 	protected static boolean merge = Bundles.getBoolean(Environments.getProperties(), "merge.prepared.sql.params", Boolean.TRUE);
 
@@ -43,9 +44,10 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 	 * @param pstat 连接状态
 	 * @param conn 连接
 	 * @param sql SQL 语句
+	 * @param action 显 SQL 处理动作
 	 */
-	protected ShowablePreparedStatement(PreparedStatement pstat, ShowableConnection conn, String sql) {
-		super(pstat, conn);
+	protected ShowablePreparedStatement(PreparedStatement pstat, C conn, String sql, SQLShowableAction action) {
+		super(pstat, conn, action);
 		this.sql = sql;
 		this.content = new PreparedContent();
 	}
@@ -67,7 +69,7 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 	}
 
 	public boolean execute() throws SQLException {
-		return execute(new Execution<Boolean, Object>() {
+		return execute(null, new Execution<Boolean, Object>() {
 			public Boolean execute(Object sql) throws SQLException {
 				return $execute();
 			}
@@ -75,7 +77,7 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 	}
 
 	public ResultSet executeQuery() throws SQLException {
-		return execute(new Execution<ResultSet, Object>() {
+		return execute(Boolean.TRUE, new Execution<ResultSet, Object>() {
 			public ResultSet execute(Object sql) throws SQLException {
 				return $executeQuery();
 			}
@@ -83,7 +85,7 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 	}
 
 	public int executeUpdate() throws SQLException {
-		return execute(new Execution<Integer, Object>() {
+		return execute(Boolean.FALSE, new Execution<Integer, Object>() {
 			public Integer execute(Object sql) throws SQLException {
 				return $executeUpdate();
 			}
@@ -336,13 +338,13 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 
 	/**
 	 * 执行 SQL
-	 * @param sql SQL
+	 * @param select 是否查询
 	 * @param execution 执行项
 	 * @return 执行结果
 	 * @throws SQLException
 	 */
-	protected <R> R execute(Execution<R, Object> execution) throws SQLException {
-		last(null);
+	protected <R> R execute(Boolean select, Execution<R, Object> execution) throws SQLException {
+		last(null, null);
 
 		R r = null;
 		SQLException se = null;
@@ -356,13 +358,9 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 			time = conn.timestamp() - time;
 			throw transform(e, content);
 		} finally {
-			if (se == null && r instanceof Boolean) {
-				registerLast(content, (Boolean) r, time);
-			} else if (se == null && r instanceof ResultSet) {
-				log(content, se, count((ResultSet) r), time);
-			} else {
-				log(content, se, r, time);
-			}
+			if (se == null && r instanceof Boolean) registerLast(content, (Boolean) r, time);
+			else if (se == null && r instanceof ResultSet) onExecute(content, se, count((ResultSet) r), time, true);
+			else onExecute(content, se, r, time, Boolean.TRUE.equals(select));
 		}
 	}
 
@@ -512,11 +510,11 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 		}
 
 		protected String getType() {
-			return conn.type;
+			return conn.general.getType();
 		}
 
 		protected String getVersion() {
-			return conn.version;
+			return conn.general.getVersion();
 		}
 	}
 }

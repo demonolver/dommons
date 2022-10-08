@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.dommons</groupId>
 	<artifactId>dommons</artifactId>
-	<version>0.4.8-SNAPSHOT</version>
+	<version>0.4.9-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<licenses>
@@ -17,7 +17,7 @@
 		<project.base>${basedir}</project.base>
 		<jdk.version>1.6</jdk.version>
 		<spring.version>4.3.17.RELEASE</spring.version>
-		<dommons.version>0.4.8-SNAPSHOT</dommons.version>
+		<dommons.version>0.4.9-SNAPSHOT</dommons.version>
 		<deploy.skip>false</deploy.skip>
 	</properties>
 
@@ -37,7 +37,7 @@
 			<dependency>
 				<groupId>log4j</groupId>
 				<artifactId>log4j</artifactId>
-				<version>1.2.16</version>
+				<version>1.2.17</version>
 				<scope>provided</scope>
 			</dependency>
 

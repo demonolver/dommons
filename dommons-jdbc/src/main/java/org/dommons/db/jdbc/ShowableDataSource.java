@@ -17,9 +17,7 @@ import org.dommons.core.string.Stringure;
  */
 public class ShowableDataSource extends AbstractDataSource {
 
-	private String name;
-	private String type;
-	private String version;
+	private final DatabaseGeneral general;
 
 	/**
 	 * 构造函数
@@ -36,7 +34,7 @@ public class ShowableDataSource extends AbstractDataSource {
 	 */
 	public ShowableDataSource(DataSource dataSource, String name) {
 		super(dataSource);
-		this.name = name;
+		this.general = new DatabaseGeneral(name);
 	}
 
 	public Connection getConnection() throws SQLException {
@@ -55,13 +53,23 @@ public class ShowableDataSource extends AbstractDataSource {
 	 */
 	protected Connection connection(Connection conn) throws SQLException {
 		if (conn == null) return conn;
-		if (name == null || type == null || version == null) {
-			if (Stringure.isEmpty(name)) name = conn.getCatalog();
+		if (!fetch(general)) {
+			if (Stringure.isEmpty(general.getName())) general.setName(conn.getCatalog());
 			DatabaseMetaData metaData = conn.getMetaData();
-			type = metaData.getDatabaseProductName();
-			version = metaData.getDatabaseProductVersion();
+			general.setType(metaData.getDatabaseProductName());
+			general.setVersion(metaData.getDatabaseProductVersion());
 		}
-		return connection(conn, name, type, version);
+		return connection(conn, general);
+	}
+
+	/**
+	 * 转换连接实例
+	 * @param conn 目标连接
+	 * @param general 数据库信息
+	 * @return 显 SQL 连接
+	 */
+	protected Connection connection(Connection conn, DatabaseGeneral general) {
+		return new ShowableConnection(conn, general);
 	}
 
 	/**
@@ -71,8 +79,16 @@ public class ShowableDataSource extends AbstractDataSource {
 	 * @param type 数据库类型
 	 * @param version 数据库版本
 	 * @return 显 SQL 连接
+	 * @deprecated {@link #connection(Connection, DatabaseGeneral)}
 	 */
 	protected Connection connection(Connection conn, String name, String type, String version) {
 		return new ShowableConnection(conn, name, type, version);
+	}
+
+	private boolean fetch(DatabaseGeneral general) {
+		if (general.getName() == null) return false;
+		else if (general.getType() == null) return false;
+		else if (general.getVersion() == null) return false;
+		return true;
 	}
 }
