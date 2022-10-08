@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.Notification;
 import javax.management.NotificationBroadcaster;
@@ -21,6 +23,7 @@ import javax.management.NotificationListener;
 import org.dommons.core.Environments;
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 import org.dommons.core.util.Arrayard;
+import org.dommons.core.util.Randoms;
 
 /**
  * 内存数据缓存映射集
@@ -214,7 +217,9 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		public static void add(Object key, MemcacheMap map) {
 			try {
 				MemCleanThread ct = MemCleanThread.t();
-				if (ct != null && ct.cs != null && !ct.cs.containsKey(key)) ct.cs.put(key, map);
+				if (ct == null) return;
+				if (ct.cs != null && !ct.cs.containsKey(key)) ct.cs.put(key, map);
+				if (Randoms.randomInteger(5) == 4) ct.notifyTo();
 			} catch (Throwable t) { // ignored
 			}
 		}
@@ -227,7 +232,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	protected static class MemCleanThread implements Runnable, NotificationListener {
 
 		static MemCleanThread t;
-		static long limit = 5;// TimeUnit.MINUTES.toMillis(5);
+		static long limit = TimeUnit.SECONDS.toMillis(15);
 
 		/**
 		 * 获取清理器实例
@@ -244,7 +249,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		}
 
 		private final Map<Object, MemcacheMap> cs;
-		private Long time;
+		private final AtomicLong time;
 		private Thread thread;
 		private volatile boolean act;
 
@@ -266,7 +271,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 			}
 			if (x < 1) cs = null;
 			else cs = new ConcurrentHashMap();
-			this.time = System.currentTimeMillis();
+			this.time = new AtomicLong(System.currentTimeMillis());
 			this.act = true;
 		}
 
@@ -288,10 +293,11 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 						} catch (Throwable t) { // ignored
 						}
 					}
+				} catch (Throwable t) { // ignored
 				} finally {
 					if (thread != null && act) {
 						synchronized (this) {
-							time = System.currentTimeMillis();
+							time.set(System.currentTimeMillis());
 							Environments.wait(this);
 						}
 					}
@@ -305,12 +311,11 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		 */
 		protected void notifyTo() {
 			if (cs == null) return;
-			synchronized (this) {
-				if (time == null || System.currentTimeMillis() - time < limit) return;
-				time = null;
-				if (thread == null) start();
-				else this.notify();
-			}
+			long now = System.currentTimeMillis(), last = time.get();
+			if (now - last < limit) return;
+			else if (!time.compareAndSet(last, now)) return;
+			if (thread == null) start();
+			else this.notify();
 		}
 
 		/**
