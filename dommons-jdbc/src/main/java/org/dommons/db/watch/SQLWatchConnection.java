@@ -76,6 +76,17 @@ public class SQLWatchConnection extends ShowableConnection {
 	}
 
 	/**
+	 * 构建连接SQL上下文
+	 * @param start 开始时间戳
+	 * @return 上下文
+	 */
+	protected SQLWatchContent buildConnectContent(long start) {
+		SQLWatchContent content = new SQLWatchContent("/* new connection; */").setCatalog(Stringure.trim($catalog));
+		content.setKind(SQLWatchKind.CONNECT).setMillis(toMillis(timestamp() - start)).setUniqueID(unique(connectID));
+		return handleConnection(content);
+	}
+
+	/**
 	 * 获取数据库名
 	 * @return 数据库名
 	 */
@@ -173,6 +184,21 @@ public class SQLWatchConnection extends ShowableConnection {
 	protected <C extends SQLWatchConnection> C set(String host, Integer port) {
 		this.$tarinfo = DataPair.create(host, port);
 		return (C) this;
+	}
+
+	@Override
+	protected long timestamp() {
+		return super.timestamp();
+	}
+
+	@Override
+	protected Number toMillis(long time) {
+		return super.toMillis(time);
+	}
+
+	@Override
+	protected String unique(String connectID) {
+		return super.unique(connectID);
 	}
 
 	SQLWatchKind kind(Boolean select) {

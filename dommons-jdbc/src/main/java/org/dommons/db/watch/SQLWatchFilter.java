@@ -33,7 +33,7 @@ public interface SQLWatchFilter {
 
 		private SQLWatchKind kind;
 		private String SQL;
-		private Object result;
+		private Object result = Integer.valueOf(0);
 		private Number millis;
 		private String uniqueID;
 		private String host;
