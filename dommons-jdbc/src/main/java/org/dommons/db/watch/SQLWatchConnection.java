@@ -162,7 +162,8 @@ public class SQLWatchConnection extends ShowableConnection {
 				for (Entry<String, Object> en : batch) {
 					SQLWatchContent swc = new SQLWatchContent(en.getKey()).setCatalog(c);
 					swc.setKind(kind).setUniqueID(connectID);
-					swc.setBatchMillis(millis).setCountInBatch(batch.size());
+					if (batch.size() <= 1) swc.setMillis(millis);
+					else swc.setBatchMillis(millis).setCountInBatch(batch.size());
 					cs.add(handleConnection(swc));
 				}
 				if (!cs.isEmpty()) filter.onFilter(cs);
