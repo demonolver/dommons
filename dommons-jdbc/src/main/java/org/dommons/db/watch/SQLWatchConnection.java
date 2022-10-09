@@ -6,6 +6,10 @@ package org.dommons.db.watch;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import org.dommons.core.collections.map.DataPair;
@@ -22,9 +26,14 @@ import org.dommons.db.watch.SQLWatchFilter.SQLWatchKind;
  */
 public class SQLWatchConnection extends ShowableConnection {
 
-	static URI parse(String url) {
+	/**
+	 * 解析 JDBC URL
+	 * @param url 连接串
+	 * @return URI 信息
+	 */
+	public static URI parse(String url) {
 		URI u = URI.create(url);
-		while (true) {
+		while (u != null) {
 			String s = u.getSchemeSpecificPart();
 			if (s == null || s.isEmpty()) break;
 			else if (s.startsWith("//")) break;
@@ -61,7 +70,7 @@ public class SQLWatchConnection extends ShowableConnection {
 				String sql = "use `" + catalog + "`;";
 				SQLWatchContent content = new SQLWatchContent(sql).setKind(SQLWatchKind.CONFIG).setCatalog(last);
 				content.setUniqueID(unique(connectID)).setMillis(toMillis(timestamp() - s));
-				onFilter(filter, content);
+				filter.onFilter(handleConnection(content));
 			}
 		}
 	}
@@ -81,6 +90,17 @@ public class SQLWatchConnection extends ShowableConnection {
 	}
 
 	/**
+	 * 注入数据库名
+	 * @param <C> 连接类型
+	 * @param catalog 数据库名
+	 * @return 连接实例
+	 */
+	protected <C extends SQLWatchConnection> C catalog(String catalog) {
+		this.$catalog = catalog;
+		return (C) this;
+	}
+
+	/**
 	 * 注入连接信息
 	 * @param content 上下文内容
 	 * @return 新上下文内容
@@ -88,9 +108,10 @@ public class SQLWatchConnection extends ShowableConnection {
 	protected SQLWatchContent handleConnection(SQLWatchContent content) {
 		if ($tarinfo == null) {
 			DataPair<String, Integer> info = DataPair.create(null, Integer.valueOf(0));
-			try {
+			parse: try {
 				String url = getMetaData().getURL();
 				URI u = parse(url);
+				if (u == null) break parse;
 				info.setKey(u.getHost());
 				info.setValue(u.getPort());
 			} catch (Throwable t) { // ignored
@@ -114,7 +135,7 @@ public class SQLWatchConnection extends ShowableConnection {
 			SQLWatchContent content = new SQLWatchContent(sql).setCatalog(catalog());
 			content.setKind(action == ConnectionAction.CLOSE ? SQLWatchKind.CONNECT : SQLWatchKind.CONFIG);
 			content.setUniqueID(unique(connectID)).setMillis(millis);
-			onFilter(filter, content);
+			filter.onFilter(handleConnection(content));
 		}
 	}
 
@@ -122,17 +143,24 @@ public class SQLWatchConnection extends ShowableConnection {
 	protected void onExecute(Object content, Object result, Number millis, Boolean select, String sql, String connectID) {
 		super.onExecute(content, result, millis, select, sql, connectID);
 		if (filter != null) {
-
+			SQLWatchKind kind = kind(select);
+			if (content instanceof BatchSQL) {
+				Collection<Entry<String, Object>> batch = splitBatch((BatchSQL) content, result);
+				Collection<SQLWatchContent> cs = new ArrayList(batch.size());
+				String c = catalog();
+				for (Entry<String, Object> en : batch) {
+					SQLWatchContent swc = new SQLWatchContent(en.getKey()).setCatalog(c);
+					swc.setKind(kind).setUniqueID(connectID);
+					swc.setBatchMillis(millis).setCountInBatch(batch.size());
+					cs.add(handleConnection(swc));
+				}
+				if (!cs.isEmpty()) filter.onFilter(cs);
+			} else {
+				SQLWatchContent swc = new SQLWatchContent(sql).setKind(kind).setCatalog(catalog());
+				swc.setKind(kind).setUniqueID(connectID).setMillis(millis);
+				filter.onFilter(handleConnection(swc));
+			}
 		}
-	}
-
-	/**
-	 * 执行过滤
-	 * @param filter 过滤器
-	 * @param content 上下文内容
-	 */
-	protected void onFilter(SQLWatchFilter filter, SQLWatchContent content) {
-		filter.onFilter(handleConnection(content));
 	}
 
 	/**
@@ -145,5 +173,27 @@ public class SQLWatchConnection extends ShowableConnection {
 	protected <C extends SQLWatchConnection> C set(String host, Integer port) {
 		this.$tarinfo = DataPair.create(host, port);
 		return (C) this;
+	}
+
+	SQLWatchKind kind(Boolean select) {
+		if (Boolean.TRUE.equals(select)) return SQLWatchKind.SELECT;
+		else if (Boolean.FALSE.equals(select)) return SQLWatchKind.UPDATE;
+		else return SQLWatchKind.UNKNOWN;
+	}
+
+	Collection<Entry<String, Object>> splitBatch(BatchSQL batch, Object result) {
+		Collection<Object> rs = new LinkedList(), bs = new LinkedList();
+		if (!(result instanceof BatchResult)) rs.add(result);
+		else((BatchResult) result).toResults(rs);
+		batch.toBatch(bs);
+		Collection<Entry<String, Object>> list = new ArrayList(bs.size());
+		for (Iterator<Object> bit = bs.iterator(), rit = bs.iterator(); bit.hasNext();) {
+			Object sql = bit.next();
+			Object r = rit.hasNext() ? rit.next() : Integer.valueOf(0);
+			String s = String.valueOf(sql);
+			if (!s.endsWith(";")) s += ';';
+			list.add(DataPair.create(s, r));
+		}
+		return list;
 	}
 }

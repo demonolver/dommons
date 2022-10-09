@@ -4,12 +4,19 @@
 package org.dommons.db.watch;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * SQL 可观察过滤
  * @author demon 2022-09-30
  */
 public interface SQLWatchFilter {
+
+	/**
+	 * 执行过滤
+	 * @param cs SQL 上下文集
+	 */
+	void onFilter(Collection<SQLWatchContent> cs);
 
 	/**
 	 * 执行过滤
@@ -33,6 +40,9 @@ public interface SQLWatchFilter {
 		private int port;
 		private String catalog;
 
+		private Number batchMillis;
+		private Integer countInBatch;
+
 		public SQLWatchContent() {
 			super();
 		}
@@ -42,8 +52,16 @@ public interface SQLWatchFilter {
 			this.SQL = SQL;
 		}
 
+		public Number getBatchMillis() {
+			return batchMillis;
+		}
+
 		public String getCatalog() {
 			return catalog;
+		}
+
+		public Integer getCountInBatch() {
+			return countInBatch;
 		}
 
 		public String getHost() {
@@ -74,8 +92,18 @@ public interface SQLWatchFilter {
 			return uniqueID;
 		}
 
+		public SQLWatchContent setBatchMillis(Number batchMillis) {
+			this.batchMillis = batchMillis;
+			return this;
+		}
+
 		public SQLWatchContent setCatalog(String catalog) {
 			this.catalog = catalog;
+			return this;
+		}
+
+		public SQLWatchContent setCountInBatch(Integer countInBatch) {
+			this.countInBatch = countInBatch;
 			return this;
 		}
 

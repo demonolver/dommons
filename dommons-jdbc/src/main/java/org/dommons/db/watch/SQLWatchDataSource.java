@@ -57,9 +57,10 @@ public class SQLWatchDataSource extends ShowableDataSource {
 	 * @return 数据源实例
 	 */
 	protected <C extends SQLWatchDataSource> C withJDBCUrl(String url) {
-		try {
+		parse: try {
 			DataPair<String, Integer> info = DataPair.create(null, Integer.valueOf(0));
 			URI u = SQLWatchConnection.parse(url);
+			if (u == null) break parse;
 			info.setKey(u.getHost());
 			info.setValue(u.getPort());
 			authority = info;

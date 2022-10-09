@@ -337,23 +337,6 @@ public class ShowableConnection extends EssentialConnection {
 	}
 
 	/**
-	 * 批量 SQL
-	 * @author demon 2022-09-30
-	 */
-	protected static class BatchSQL {
-		protected Collection<Object> children;
-
-		public String toString() {
-			StringBuilder buffer = new StringBuilder(1024);
-			for (Object child : children) {
-				if (buffer.length() > 0) buffer.append("\n\t");
-				buffer.append(child).append(';');
-			}
-			return buffer.toString();
-		}
-	}
-
-	/**
 	 * 批量执行结果
 	 * @author demon 2022-10-08
 	 */
@@ -364,12 +347,37 @@ public class ShowableConnection extends EssentialConnection {
 			this.results = Arrayard.asList(rs);
 		}
 
+		public void toResults(Collection<Object> tar) {
+			tar.addAll(results);
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder buffer = new StringBuilder();
 			for (int r : results) {
 				if (buffer.length() > 0) buffer.append(',');
 				buffer.append(NumberFormat.getIntegerInstance().format(r));
+			}
+			return buffer.toString();
+		}
+	}
+
+	/**
+	 * 批量 SQL
+	 * @author demon 2022-09-30
+	 */
+	protected static class BatchSQL {
+		protected Collection<Object> children;
+
+		public void toBatch(Collection<Object> tar) {
+			tar.addAll(children);
+		}
+
+		public String toString() {
+			StringBuilder buffer = new StringBuilder(1024);
+			for (Object child : children) {
+				if (buffer.length() > 0) buffer.append("\n\t");
+				buffer.append(child).append(';');
 			}
 			return buffer.toString();
 		}
