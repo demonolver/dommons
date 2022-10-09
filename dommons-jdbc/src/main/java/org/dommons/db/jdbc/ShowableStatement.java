@@ -13,22 +13,17 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.dommons.core.Assertor;
-import org.dommons.core.Environments;
 import org.dommons.core.Silewarner;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
 import org.dommons.db.jdbc.ShowableConnection.BatchSQL;
 import org.dommons.db.jdbc.ShowableConnection.SQLShowableAction;
-import org.dommons.io.prop.Bundles;
 
 /**
  * 显 SQL 数据库连接状态
  * @author Demon 2012-2-1
  */
 class ShowableStatement<C extends ShowableConnection> extends EssentialCallableStatement<C> implements Statement {
-
-	static final long time_limit = Bundles.getLong(Environments.getProperties(), "sql.time.limit", 1000);
-	static final int count_limit = Bundles.getInteger(Environments.getProperties(), "sql.count.limit", 3000);
 
 	/**
 	 * 获取结果行数

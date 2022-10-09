@@ -136,6 +136,47 @@ public final class Bundles extends Radix64Digits {
 	}
 
 	/**
+	 * 获取首个有效属性值
+	 * @param prop 属性集
+	 * @param keys 键值集
+	 * @return 属性值
+	 */
+	public static String get(Map prop, String... keys) {
+		return get(prop, null, keys);
+	}
+
+	/**
+	 * 获取有效属性值
+	 * @param prop 属性集
+	 * @param def 默认值
+	 * @param keys 键值集
+	 * @return 属性值
+	 */
+	public static String get(Map prop, String def, String[] keys) {
+		if (keys == null) return def;
+		String str = null;
+		for (String k : keys) {
+			str = getProperty(prop, k);
+			if (str != null) break;
+		}
+		if (str == null) str = def;
+		return str == null ? str : Stringure.convertVariables(str, prop);
+	}
+
+	/**
+	 * 获取boolean型属性值
+	 * @param prop 属性集
+	 * @param def 默认值
+	 * @param keys 键值集
+	 * @return boolean值
+	 */
+	public static boolean getBoolean(Map prop, boolean def, String... keys) {
+		String value = get(prop, keys);
+		Boolean b = Converter.F.convert(value, Boolean.class);
+		return b == null ? def : b.booleanValue();
+	}
+
+	/**
 	 * 获取boolean型属性值
 	 * @param prop 属性集
 	 * @param key 属性键值
@@ -173,6 +214,30 @@ public final class Bundles extends Radix64Digits {
 	}
 
 	/**
+	 * 获取boolean型属性值
+	 * @param prop 属性集
+	 * @param criterion 判断标准
+	 * @param keys 键值集
+	 * @return boolean值
+	 */
+	public static boolean getBoolean(Map prop, String criterion, String... keys) {
+		return criterion == null ? get(prop, keys) == null : criterion.equalsIgnoreCase(get(prop, keys));
+	}
+
+	/**
+	 * 获取浮点型属性值
+	 * @param prop 属性集
+	 * @param def 默认值
+	 * @param keys 键值集
+	 * @return 浮点值
+	 */
+	public static double getDouble(Map prop, double def, String... keys) {
+		String value = get(prop, keys);
+		Number no = Converter.F.convert(value, Number.class);
+		return no == null ? def : no.doubleValue();
+	}
+
+	/**
 	 * 获取浮点型属性值
 	 * @param prop 属性集
 	 * @param key 属性键值
@@ -192,6 +257,17 @@ public final class Bundles extends Radix64Digits {
 	public static double getDouble(Map prop, String key, double def) {
 		Number no = getNumber(prop, key);
 		return no == null ? def : no.doubleValue();
+	}
+
+	/**
+	 * 获取整型属性值
+	 * @param prop 属性集
+	 * @param def 默认值
+	 * @param keys 键值集
+	 * @return 整型值
+	 */
+	public static int getInteger(Map prop, int def, String... keys) {
+		return (int) getLong(prop, def, keys);
 	}
 
 	/**
@@ -218,6 +294,19 @@ public final class Bundles extends Radix64Digits {
 	/**
 	 * 获取长整型属性值
 	 * @param prop 属性集
+	 * @param def 默认值
+	 * @param keys 键值集
+	 * @return 长整型值
+	 */
+	public static long getLong(Map prop, long def, String... keys) {
+		String v = get(prop, keys);
+		Long l = Converter.F.convert(v, Long.class);
+		return l == null ? def : l.longValue();
+	}
+
+	/**
+	 * 获取长整型属性值
+	 * @param prop 属性集
 	 * @param key 属性键值
 	 * @return 长整型值 无此属性时返回<code>0</code>
 	 */
@@ -233,7 +322,8 @@ public final class Bundles extends Radix64Digits {
 	 * @return 长整型值
 	 */
 	public static long getLong(Map prop, String key, long def) {
-		return (long) getDouble(prop, key, def);
+		Number no = getNumber(prop, key);
+		return no == null ? def : no.longValue();
 	}
 
 	/**
@@ -560,8 +650,7 @@ public final class Bundles extends Radix64Digits {
 	/**
 	 * 构造函数
 	 */
-	protected Bundles() {
-	}
+	protected Bundles() {}
 
 	/**
 	 * 属性集内容读取器

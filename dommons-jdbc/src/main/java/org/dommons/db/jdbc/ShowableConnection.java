@@ -409,7 +409,8 @@ public class ShowableConnection extends EssentialConnection {
 			ShowableConnection.this.onExecute(se, se != null ? se : result, millis, select, s, connectID);
 			if (se == null) {
 				int r = Converter.F.convert(result, int.class);
-				if (millis.intValue() < ShowableStatement.time_limit && r < ShowableStatement.count_limit) {
+				ShowableLimit limit = ShowableLimit.get();
+				if (millis.intValue() < limit.time && r < limit.count) {
 					logger.debug(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, result, millis);
 				} else {
 					logger.info(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, result, millis);
@@ -418,6 +419,23 @@ public class ShowableConnection extends EssentialConnection {
 				logger.warn(JDBCMessages.m.sql_execute_error(), general.getName(), connectID, s, se.getErrorCode(), se.getSQLState(),
 					se.getMessage(), millis);
 			}
+		}
+	}
+
+	static class ShowableLimit {
+
+		static ShowableLimit li;
+
+		public static ShowableLimit get() {
+			return li != null ? li : (li = new ShowableLimit());
+		}
+
+		public final long time;
+		public final int count;
+
+		public ShowableLimit() {
+			this.time = Bundles.getLong(Environments.getProperties(), 1000, "sql.info.limit.time", "sql.time.limit");
+			this.count = Bundles.getInteger(Environments.getProperties(), 3000, "sql.info.limit.count", "sql.count.limit");
 		}
 	}
 }
