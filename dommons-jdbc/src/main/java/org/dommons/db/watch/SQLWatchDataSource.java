@@ -22,7 +22,7 @@ public class SQLWatchDataSource extends ShowableDataSource {
 
 	protected final SQLWatchFilter filter;
 
-	private Entry<String, Integer> authority;
+	private Entry<String, Integer> host;
 
 	public SQLWatchDataSource(DataSource dataSource, SQLWatchFilter filter) {
 		super(dataSource);
@@ -36,18 +36,27 @@ public class SQLWatchDataSource extends ShowableDataSource {
 
 	@Override
 	protected Connection connection(Connection conn) throws SQLException {
-		return authority(new SQLWatchConnection(conn, filter));
+		return host(new SQLWatchConnection(conn, filter));
 	}
 
 	@Override
 	protected Connection connection(Connection conn, DatabaseGeneral general) {
-		return authority(new SQLWatchConnection(conn, general, filter));
+		return host(new SQLWatchConnection(conn, general, filter));
 	}
 
 	@Override
 	protected Connection connection(Connection conn, String name, String type, String version) {
 		DatabaseGeneral general = new DatabaseGeneral(name).setType(type).setVersion(version);
 		return connection(conn, general);
+	}
+
+	/**
+	 * 注入连接地址
+	 * @param sc 连接实例
+	 * @return 新连接实例
+	 */
+	protected Connection host(SQLWatchConnection sc) {
+		return host != null ? sc.set(host.getKey(), host.getValue()) : sc;
 	}
 
 	/**
@@ -63,13 +72,9 @@ public class SQLWatchDataSource extends ShowableDataSource {
 			if (u == null) break parse;
 			info.setKey(u.getHost());
 			info.setValue(u.getPort());
-			authority = info;
+			host = info;
 		} catch (Throwable t) { // ignored
 		}
 		return (C) this;
-	}
-
-	Connection authority(SQLWatchConnection sc) {
-		return authority != null ? sc.set(authority.getKey(), authority.getValue()) : sc;
 	}
 }
