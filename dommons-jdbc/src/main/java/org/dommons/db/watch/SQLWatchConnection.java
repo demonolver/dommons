@@ -161,7 +161,7 @@ public class SQLWatchConnection extends ShowableConnection {
 				String c = catalog();
 				for (Entry<String, Object> en : batch) {
 					SQLWatchContent swc = new SQLWatchContent(en.getKey()).setCatalog(c);
-					swc.setKind(kind).setUniqueID(connectID);
+					swc.setKind(kind).setUniqueID(connectID).setResult(result);
 					if (batch.size() <= 1) swc.setMillis(millis);
 					else swc.setBatchMillis(millis).setCountInBatch(batch.size());
 					cs.add(handleConnection(swc));
@@ -169,7 +169,7 @@ public class SQLWatchConnection extends ShowableConnection {
 				if (!cs.isEmpty()) filter.onFilter(cs);
 			} else {
 				SQLWatchContent swc = new SQLWatchContent(sql).setKind(kind).setCatalog(catalog());
-				swc.setKind(kind).setUniqueID(connectID).setMillis(millis);
+				swc.setKind(kind).setUniqueID(connectID).setMillis(millis).setResult(result);
 				filter.onFilter(handleConnection(swc));
 			}
 		}
@@ -210,9 +210,15 @@ public class SQLWatchConnection extends ShowableConnection {
 
 	Collection<Entry<String, Object>> splitBatch(BatchSQL batch, Object result) {
 		Collection<Object> rs = new LinkedList(), bs = new LinkedList();
-		if (!(result instanceof BatchResult)) rs.add(result);
-		else((BatchResult) result).toResults(rs);
 		batch.toBatch(bs);
+		if (result instanceof SQLException) {
+			for (int i = 0; i < bs.size(); i++)
+				rs.add(result);
+		} else if (!(result instanceof BatchResult)) {
+			rs.add(result);
+		} else {
+			((BatchResult) result).toResults(rs);
+		}
 		Collection<Entry<String, Object>> list = new ArrayList(bs.size());
 		for (Iterator<Object> bit = bs.iterator(), rit = bs.iterator(); bit.hasNext();) {
 			Object sql = bit.next();
