@@ -102,11 +102,6 @@ public class SQLWatchDataSource extends ShowableDataSource {
 	}
 
 	@Override
-	protected Connection connection(Connection conn) throws SQLException {
-		return host(new SQLWatchConnection(conn, filter));
-	}
-
-	@Override
 	protected Connection connection(Connection conn, DatabaseGeneral general) {
 		return host(new SQLWatchConnection(conn, general, filter));
 	}
