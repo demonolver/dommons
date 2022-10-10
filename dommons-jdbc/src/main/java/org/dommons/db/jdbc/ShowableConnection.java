@@ -340,11 +340,36 @@ public class ShowableConnection extends EssentialConnection {
 	 * 批量执行结果
 	 * @author demon 2022-10-08
 	 */
-	protected static class BatchResult {
+	protected static class BatchResult extends Number {
+		private static final long serialVersionUID = 6583267989864836424L;
+
 		protected Collection<Integer> results;
 
 		public BatchResult(int... rs) {
 			this.results = Arrayard.asList(rs);
+		}
+
+		@Override
+		public double doubleValue() {
+			return longValue();
+		}
+
+		@Override
+		public float floatValue() {
+			return longValue();
+		}
+
+		@Override
+		public int intValue() {
+			return (int) longValue();
+		}
+
+		@Override
+		public long longValue() {
+			long total = 0;
+			for (Integer r : results)
+				total += r.longValue();
+			return total;
 		}
 
 		public void toResults(Collection<Object> tar) {
