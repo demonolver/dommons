@@ -161,7 +161,7 @@ public class SQLWatchConnection extends ShowableConnection {
 				String c = catalog();
 				for (Entry<String, Object> en : batch) {
 					SQLWatchContent swc = new SQLWatchContent(en.getKey()).setCatalog(c);
-					swc.setKind(kind).setUniqueID(connectID).setResult(result);
+					swc.setKind(kind).setUniqueID(connectID).setResult(en.getValue());
 					if (batch.size() <= 1) swc.setMillis(millis);
 					else swc.setBatchMillis(millis).setCountInBatch(batch.size());
 					cs.add(handleConnection(swc));
@@ -220,7 +220,7 @@ public class SQLWatchConnection extends ShowableConnection {
 			((BatchResult) result).toResults(rs);
 		}
 		Collection<Entry<String, Object>> list = new ArrayList(bs.size());
-		for (Iterator<Object> bit = bs.iterator(), rit = bs.iterator(); bit.hasNext();) {
+		for (Iterator<Object> bit = bs.iterator(), rit = rs.iterator(); bit.hasNext();) {
 			Object sql = bit.next();
 			Object r = rit.hasNext() ? rit.next() : Integer.valueOf(0);
 			String s = String.valueOf(sql);

@@ -431,14 +431,15 @@ public class ShowableConnection extends EssentialConnection {
 
 			Number millis = toMillis(time);
 			String connectID = unique(ShowableConnection.this.connectID);
-			ShowableConnection.this.onExecute(se, se != null ? se : result, millis, select, s, connectID);
+			ShowableConnection.this.onExecute(sql, se != null ? se : result, millis, select, s, connectID);
 			if (se == null) {
 				int r = Converter.F.convert(result, int.class);
 				ShowableLimit limit = ShowableLimit.get();
+				Object res = result instanceof BatchResult ? result.toString() : result;
 				if (millis.intValue() < limit.time && r < limit.count) {
-					logger.debug(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, result, millis);
+					logger.debug(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, res, millis);
 				} else {
-					logger.info(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, result, millis);
+					logger.info(JDBCMessages.m.sql_execute_success(), general.getName(), connectID, s, res, millis);
 				}
 			} else {
 				logger.warn(JDBCMessages.m.sql_execute_error(), general.getName(), connectID, s, se.getErrorCode(), se.getSQLState(),
