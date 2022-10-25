@@ -5,7 +5,11 @@ package org.dommons.core.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import org.dommons.core.collections.map.concurrent.ConcurrentWeakMap;
 import org.dommons.core.util.Arrayard;
 
 /**
@@ -13,6 +17,9 @@ import org.dommons.core.util.Arrayard;
  * @author demon 2017-12-25
  */
 public class ProxyFactory {
+
+	static final Map<String, Boolean> existCache = new ConcurrentWeakMap();
+	static final ConcurrentMap<ClassLoader, Map<String, Class[]>> classCache = new ConcurrentHashMap();
 
 	/**
 	 * 查找类
@@ -30,11 +37,21 @@ public class ProxyFactory {
 	 * @return 类
 	 */
 	public static Class findClass(String cls, ClassLoader loader) {
-		try {
-			return Class.forName(cls, false, loader);
-		} catch (Throwable t) {
-			return null;
+		Map<String, Class[]> cache = classCache.get(loader);
+		if (cache == null) {
+			Map<String, Class[]> old = classCache.putIfAbsent(loader, cache = new ConcurrentWeakMap());
+			if (old != null) cache = old;
 		}
+		Class[] c = cache.get(cls);
+		if (c == null) {
+			try {
+				c = new Class[] { Class.forName(cls, false, loader) };
+			} catch (Throwable t) {
+				c = new Class[1];
+			}
+			cache.put(cls, c);
+		}
+		return c[0];
 	}
 
 	/**
@@ -72,8 +89,13 @@ public class ProxyFactory {
 	 * @return 是、否
 	 */
 	static boolean existClass(String cls) {
-		if (findClass(cls, Thread.currentThread().getContextClassLoader()) != null) return true;
-		else if (findClass(cls, ProxyFactory.class.getClassLoader()) != null) return true;
-		return false;
+		Boolean ex = existCache.get(cls);
+		if (ex == null) {
+			ex = Boolean.FALSE;
+			if (findClass(cls, Thread.currentThread().getContextClassLoader()) != null) ex = Boolean.TRUE;
+			else if (findClass(cls, ProxyFactory.class.getClassLoader()) != null) ex = Boolean.TRUE;
+			existCache.put(cls, ex);
+		}
+		return Boolean.TRUE.equals(ex);
 	}
 }
