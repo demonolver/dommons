@@ -353,7 +353,7 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 	 */
 	protected Boolean tryAssert(Boolean select, Object r) {
 		if (select != null) return select;
-		if (r instanceof Integer || Integer.TYPE.equals(r.getClass())) return Boolean.FALSE;
+		if (r instanceof Integer || (r != null && Integer.TYPE.equals(r.getClass()))) return Boolean.FALSE;
 		return null;
 	}
 
