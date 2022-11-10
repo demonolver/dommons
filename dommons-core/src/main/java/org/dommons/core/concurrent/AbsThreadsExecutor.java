@@ -27,8 +27,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.dommons.core.Silewarner;
+import org.dommons.core.convert.Converter;
 import org.dommons.core.util.thread.ThreadLocals;
-import org.omg.CORBA.portable.UnknownException;
 
 /**
  * 抽象线程池执行器
@@ -475,7 +475,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 			try {
 				return get(0);
 			} catch (TimeoutException e) {
-				throw new UnknownException(e);
+				throw Converter.F.convert(e, RuntimeException.class);
 			}
 		}
 
