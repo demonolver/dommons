@@ -1858,6 +1858,7 @@ public final class Stringure {
 						continue;
 					} else {
 						ab.append(ch);
+						break;
 					}
 				case '}':
 					if (stack.peek() != null) break;
