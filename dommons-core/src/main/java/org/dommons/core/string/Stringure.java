@@ -1841,22 +1841,33 @@ public final class Stringure {
 		Stack<Appendable> stack = new LinkedStack();
 		Appendable var = null;
 		int len = str.length();
-		for (int p = 0; p < len; p++) {
-			char ch = str.charAt(p);
-
+		for (int p = 0; p <= len; p++) {
 			Appendable ab = Arrayard.theOne(var, buffer);
-			switch (ch) {
-			case '$':
-				if (++p < len) {
-					ch = str.charAt(p);
-					if (ch == '{') {
-						stack.push(var = new StringBuilder());
-						break;
+			if (p < len) {
+				char ch = str.charAt(p);
+
+				switch (ch) {
+				case '$':
+					if (++p < len) {
+						ch = str.charAt(p);
+						if (ch == '{') {
+							stack.push(var = new StringBuilder());
+						} else {
+							ab.append('$');
+						}
+						continue;
 					} else {
-						ab.append('$');
+						ab.append(ch);
 					}
+				case '}':
+					if (stack.peek() != null) break;
+				default:
+					ab.append(ch);
+					continue;
 				}
-			case '}':
+			}
+
+			do {
 				var = stack.pop();
 				if (var != null) {
 					String key = var.toString(), def = null;
@@ -1866,7 +1877,7 @@ public final class Stringure {
 						key = Stringure.subString(key, 0, s);
 					}
 
-					var = stack.isEmpty() ? null : stack.peek();
+					var = stack.peek();
 
 					ab = Arrayard.theOne(var, buffer);
 					// 获取变量值
@@ -1880,10 +1891,7 @@ public final class Stringure {
 					}
 					break;
 				}
-			default:
-				ab.append(ch);
-				break;
-			}
+			} while (p >= len && var != null);
 		}
 	}
 
