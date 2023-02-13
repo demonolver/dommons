@@ -1853,6 +1853,7 @@ public final class Stringure {
 						if (ch == '{') {
 							stack.push(var = new StringBuilder());
 						} else {
+							p--;
 							ab.append('$');
 						}
 						continue;
