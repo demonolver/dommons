@@ -9,12 +9,17 @@ import java.io.Serializable;
  * 强引用 使用中不做释放
  * @author demon 2018-08-22
  */
-public class Strongref<T> implements Ref<T>, Serializable {
+public class Strongref<T> implements Modref<T>, Serializable {
 
 	private static final long serialVersionUID = 5097156840789700965L;
 
 	/** 空对象引用 */
-	public static final Strongref empty = new Strongref(null);
+	public static final Ref empty = new Ref() {
+		@Override
+		public Object get() {
+			return null;
+		}
+	};
 
 	/**
 	 * 生成强引用
@@ -22,17 +27,27 @@ public class Strongref<T> implements Ref<T>, Serializable {
 	 * @return 强引用
 	 */
 	public static <T> Strongref<T> ref(T referent) {
-		if (referent == null) return empty;
 		return new Strongref(referent);
 	}
 
-	private final T referent;
+	private volatile T referent;
+
+	public Strongref() {
+		super();
+	}
 
 	public Strongref(T referent) {
+		this();
 		this.referent = referent;
 	}
 
 	public T get() {
 		return referent;
 	}
+
+	@Override
+	public void set(T value) {
+		this.referent = value;
+	}
+
 }
