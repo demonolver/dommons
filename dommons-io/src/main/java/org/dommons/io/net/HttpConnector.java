@@ -225,7 +225,7 @@ public class HttpConnector {
 			if (code == 301 || code == 302) {
 				String location = conn.getHeaderField("Location");
 				if (!Stringure.isEmpty(location)) {
-					get(location, os);
+					get(location, os, headers);
 					return;
 				}
 			}
