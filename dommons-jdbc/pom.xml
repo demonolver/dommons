@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.dommons</groupId>
 		<artifactId>dommons</artifactId>
-		<version>0.4.7-SNAPSHOT</version>
+		<version>0.4.8-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -27,9 +27,10 @@
 		<dependency>
 			<groupId>org.dommons</groupId>
 			<artifactId>dommons-jdbc-adapter</artifactId>
-			<version>${project.parent.version}</version>
+			<version>${dommons.version}</version>
 			<scope>provided</scope>
 			<type>pom</type>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -48,7 +49,7 @@
 	<build>
 		<resources>
 			<resource>
-				<directory>src/main/resource</directory>
+				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>**/*.java</exclude>
 				</excludes>

@@ -3,11 +3,13 @@
  */
 package org.dommons.core.convert;
 
+import org.dommons.core.env.ProguardIgnore;
+
 /**
  * 转换处理器
  * @author Demon 2011-10-19
  */
-public interface ConvertHandler<S, T> {
+public interface ConvertHandler<S, T> extends ProguardIgnore {
 
 	/**
 	 * 转换数据

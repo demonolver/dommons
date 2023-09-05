@@ -32,9 +32,22 @@ public class ProxyFactory {
 	public static Class findClass(String cls, ClassLoader loader) {
 		try {
 			return Class.forName(cls, false, loader);
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 			return null;
 		}
+	}
+
+	/**
+	 * 是否代理类型
+	 * @param clazz 类型
+	 * @return 是否代理
+	 */
+	public static boolean isProxyClass(Class<?> clazz) {
+		if (clazz == null) return false;
+		if (existClass("org.springframework.cglib.proxy.Enhancer") && SpringProxy.isProxyClass(clazz)) return true;
+		else if (existClass("net.sf.cglib.proxy.Enhancer") && CglibProxy.isProxyClass(clazz)) return true;
+		else if (existClass("javassist.util.proxy.ProxyFactory") && JavassistProxy.isProxyClass(clazz)) return true;
+		return Proxy.isProxyClass(clazz);
 	}
 
 	/**
@@ -46,8 +59,8 @@ public class ProxyFactory {
 	 */
 	public static <O> O newInstance(InvocationHandler h, Class sc, Class... interfaces) {
 		if (h == null) return null;
-		if (existClass("net.sf.cglib.proxy.Enhancer")) return CglibProxy.create(h, sc, interfaces);
-		else if (existClass("org.springframework.cglib.proxy.Enhancer")) return SpringProxy.create(h, sc, interfaces);
+		if (existClass("org.springframework.cglib.proxy.Enhancer")) return SpringProxy.create(h, sc, interfaces);
+		else if (existClass("net.sf.cglib.proxy.Enhancer")) return CglibProxy.create(h, sc, interfaces);
 		else if (sc != null) throw new UnsupportedOperationException("unable to create proxy with super class");
 		else if (Arrayard.isEmpty(interfaces)) return null;
 		else return (O) Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces, h);

@@ -7,8 +7,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Arrayard;
@@ -41,7 +42,7 @@ class NLSInvoker implements InvocationHandler {
 	 * @return 信息
 	 */
 	protected Object message(Class rt, String key, Object... args) {
-		Locale l = NLSLocal.get();
+		Locale l = null;
 		Object[] ps = null;
 		if (args != null && args.length > 0) {
 			int s = 0;
@@ -90,7 +91,7 @@ class NLSInvoker implements InvocationHandler {
 	 */
 	private NLSItem item(Locale l, String key) {
 		String k = Stringure.join(':', l, key);
-		if (iCache == null) iCache = new ConcurrentSoftMap();
+		if (iCache == null) iCache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 		NLSItem item = iCache.get(k);
 		if (item == null) iCache.put(k, item = new NLSItem(l, bundle, key));
 		return item;

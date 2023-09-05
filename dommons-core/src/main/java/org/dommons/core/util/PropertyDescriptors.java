@@ -13,8 +13,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.util.beans.BeanProperties;
 
 /**
@@ -23,7 +24,7 @@ import org.dommons.core.util.beans.BeanProperties;
  */
 public class PropertyDescriptors {
 
-	static Map<Class, PropertyDescriptor[]> cache = new ConcurrentSoftMap();
+	static Map<Class, PropertyDescriptor[]> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 
 	/**
 	 * 复制对象

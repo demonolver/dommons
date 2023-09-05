@@ -13,6 +13,7 @@ import java.util.Properties;
 
 import org.dommons.core.Environments;
 import org.dommons.core.collections.map.ci.CaseInsensitiveHashMap;
+import org.dommons.core.env.ResourcesFind;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 
@@ -33,7 +34,7 @@ public abstract class AbstractLocaleConverter {
 	 * @throws IOException
 	 */
 	protected static Properties load(Class clz, String res) throws IOException {
-		Enumeration<URL> en = clz.getClassLoader().getResources(toResourceName(clz, res));
+		Enumeration<URL> en = ResourcesFind.getResources(clz.getClassLoader(), toResourceName(clz, res));
 		Properties props = new Properties();
 		if (en != null) {
 			while (en.hasMoreElements()) {

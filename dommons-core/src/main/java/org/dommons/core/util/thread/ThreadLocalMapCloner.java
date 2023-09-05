@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import org.dommons.core.Silewarner;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.util.Arrayard;
@@ -57,7 +58,7 @@ class ThreadLocalMapCloner {
 	 * @param t 异常信息
 	 */
 	protected static void e(Throwable t) {
-		t.printStackTrace();
+		Silewarner.error(ThreadLocalMapCloner.class, t);
 	}
 
 	/**

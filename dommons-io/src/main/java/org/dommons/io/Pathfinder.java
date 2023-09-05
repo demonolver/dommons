@@ -21,6 +21,7 @@ import java.util.zip.ZipFile;
 import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
 import org.dommons.core.Silewarner;
+import org.dommons.core.env.ResourcesFind;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Arrayard;
 import org.dommons.io.coder.URLCoder;
@@ -91,7 +92,7 @@ public final class Pathfinder {
 			if (ze.isDirectory()) continue;
 			String name = ze.getName();
 			if (name.startsWith(path)) {
-				if (pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(new File(zip.getName()), ze));
+				if (pattern.matcher(name.substring(pt)).matches()) urls.add(jarURL(zip.getName(), ze));
 			}
 		}
 		return urls.toArray(new URL[urls.size()]);
@@ -264,7 +265,7 @@ public final class Pathfinder {
 		if (path == null) return null;
 		path = path.trim();
 		cl = cl == null ? Pathfinder.class.getClassLoader() : cl;
-		return cl.getResource(path);
+		return ResourcesFind.getResource(cl, path);
 	}
 
 	/**
@@ -288,7 +289,7 @@ public final class Pathfinder {
 		Assertor.F.notNull(file, "The zip file is must not be null!");
 		Assertor.F.notNull(ze, "The zip entry is must not be null!");
 
-		return jarURL(getCanonicalPath(file.getName()), ze);
+		return jarURL(file.getName(), ze);
 	}
 
 	/**
@@ -425,7 +426,7 @@ public final class Pathfinder {
 		}
 		Enumeration<URL> en;
 		try {
-			en = cl.getResources(path);
+			en = ResourcesFind.getResources(cl, path);
 			while (en.hasMoreElements()) {
 				innerResources(en.nextElement(), pattern, urls);
 			}
@@ -506,29 +507,22 @@ public final class Pathfinder {
 
 	/**
 	 * 生成 JAR 路径
-	 * @param file JAR 文件
-	 * @param ze 元素项
-	 * @return 路径
-	 */
-	static URL jarURL(File file, ZipEntry ze) {
-		return jarURL(getCanonicalPath(file), ze);
-	}
-
-	/**
-	 * 生成 JAR 路径
 	 * @param path 文件路径
 	 * @param ze 元素项
 	 * @return 路径
 	 */
 	static URL jarURL(String path, ZipEntry ze) {
 		if (File.separatorChar != '/') path = path.replace(File.separatorChar, '/');
-		StringBuilder buffer = new StringBuilder();
-		if (!path.startsWith("file:")) buffer.append("file:");
-		if (!path.startsWith("/")) buffer.append('/');
-		buffer.append(path).append("!/");
-		buffer.append(ze.getName());
+		StringBuilder buf = new StringBuilder();
+		int s = 5;
+		buf.append("file:");
+		if (!path.startsWith("file:")) s = 0;
+		if (!path.startsWith("/", s)) buf.append('/');
+		buf.append(path.substring(s)).append("!/");
+		buf.append(ze.getName());
 		try {
-			return new URL("jar", null, buffer.toString());
+			String sf = buf.toString();
+			return new URL("jar", null, -1, sf);
 		} catch (IOException e) {
 			// 一般不出错
 			throw new RuntimeException(e);

@@ -61,6 +61,18 @@ public class ShowableDataSource extends AbstractDataSource {
 			type = metaData.getDatabaseProductName();
 			version = metaData.getDatabaseProductVersion();
 		}
+		return connection(conn, name, type, version);
+	}
+
+	/**
+	 * 转换连接实例
+	 * @param conn 目标连接
+	 * @param name 数据库名
+	 * @param type 数据库类型
+	 * @param version 数据库版本
+	 * @return 显 SQL 连接
+	 */
+	protected Connection connection(Connection conn, String name, String type, String version) {
 		return new ShowableConnection(conn, name, type, version);
 	}
 }

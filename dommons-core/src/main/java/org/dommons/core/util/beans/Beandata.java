@@ -11,8 +11,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 
 /**
@@ -141,7 +142,7 @@ public class Beandata extends AbstractMap<String, Object> implements Serializabl
 	protected BeanEntry entry(String property) {
 		if (ems == null) {
 			synchronized (this) {
-				if (ems == null) ems = new ConcurrentSoftMap();
+				if (ems == null) ems = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 			}
 		}
 		BeanEntry be = ems.get(property);

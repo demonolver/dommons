@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.dommons</groupId>
 		<artifactId>dommons</artifactId>
-		<version>0.4.7-SNAPSHOT</version>
+		<version>0.4.8-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -21,27 +21,33 @@
 			<groupId>net.sf.ehcache</groupId>
 			<artifactId>ehcache-core</artifactId>
 			<version>2.6.11</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib</artifactId>
 			<version>3.2.4</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<version>${spring.version}</version>
-			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.21.0-GA</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<resources>
 			<resource>
-				<directory>src/main/resource</directory>
+				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>**/*.java</exclude>
 				</excludes>

@@ -6,10 +6,11 @@ package org.dommons.core;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.string.Stringure;
 
 /**
@@ -17,6 +18,8 @@ import org.dommons.core.string.Stringure;
  * @author Demon 2011-11-1
  */
 public final class Silewarner {
+
+	static final ThreadLocal<Boolean> local = new ThreadLocal();
 
 	/**
 	 * 记录错误
@@ -52,6 +55,14 @@ public final class Silewarner {
 	 */
 	public static void error(Class cls, Throwable t) {
 		error(cls, null, t);
+	}
+
+	/**
+	 * 是否正在报警
+	 * @return 是、否
+	 */
+	public static boolean isWarning() {
+		return Boolean.TRUE.equals(local.get());
 	}
 
 	/**
@@ -117,11 +128,11 @@ public final class Silewarner {
 	static Class findClass(String name) {
 		try {
 			return Class.forName(name, false, Silewarner.class.getClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		try {
 			return Class.forName(name, false, Thread.currentThread().getContextClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		return null;
 	}
@@ -172,7 +183,11 @@ public final class Silewarner {
 			if (h != null) return h;
 			Object logger = getLogger(cls);
 			if (logger == null) return null;
-			if (cache == null) cache = new ConcurrentSoftMap();
+			if (cache == null) {
+				synchronized (Log4jHandler.cache) {
+					if (cache == null) cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+				}
+			}
 			cache.put(cls, h = new Log4jHandler(logger));
 			return h;
 		}
@@ -260,7 +275,11 @@ public final class Silewarner {
 			if (h != null) return h;
 			Object logger = logger(cls);
 			if (logger == null) return null;
-			if (cache == null) cache = new ConcurrentSoftMap();
+			if (cache == null) {
+				synchronized (LoggerFactoryHandler.class) {
+					if (cache == null) cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+				}
+			}
 			cache.put(cls, h = new LoggerFactoryHandler(logger));
 			return h;
 		}
@@ -303,16 +322,21 @@ public final class Silewarner {
 		 * @return 是否记录成功
 		 */
 		public boolean error(String msg, Throwable t) {
-			Method m = findMethod(inst.getClass(), "error", Throwable.class, CharSequence.class);
+			local.set(Boolean.TRUE);
 			try {
-				if (m != null) {
-					m.invoke(inst, t, msg);
-					return true;
+				Method m = findMethod(inst.getClass(), "error", Throwable.class, CharSequence.class);
+				try {
+					if (m != null) {
+						m.invoke(inst, t, msg);
+						return true;
+					}
+				} catch (Throwable e) {
+					Silewarner.warn(e);
 				}
-			} catch (Throwable e) {
-				Silewarner.warn(e);
+				return false;
+			} finally {
+				local.remove();
 			}
-			return false;
 		}
 
 		/**
@@ -322,16 +346,21 @@ public final class Silewarner {
 		 * @return 是否记录成功
 		 */
 		public boolean warn(String msg, Throwable t) {
-			Method m = findMethod(inst.getClass(), "warn", Throwable.class, CharSequence.class);
+			local.set(Boolean.TRUE);
 			try {
-				if (m != null) {
-					m.invoke(inst, t, msg);
-					return true;
+				Method m = findMethod(inst.getClass(), "warn", Throwable.class, CharSequence.class);
+				try {
+					if (m != null) {
+						m.invoke(inst, t, msg);
+						return true;
+					}
+				} catch (Throwable e) {
+					Silewarner.warn(e);
 				}
-			} catch (Throwable e) {
-				Silewarner.warn(e);
+				return false;
+			} finally {
+				local.remove();
 			}
-			return false;
 		}
 	}
 }

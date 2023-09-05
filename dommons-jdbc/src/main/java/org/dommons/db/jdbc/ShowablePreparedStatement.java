@@ -353,6 +353,7 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 			return r;
 		} catch (SQLException e) {
 			se = e;
+			time = System.currentTimeMillis() - time;
 			throw transform(e, content);
 		} finally {
 			if (se == null && r instanceof Boolean) {
@@ -384,8 +385,8 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 	 * @return 日历
 	 */
 	private Calendar toCalendar(java.util.Date date, Calendar cal) {
-		Calendar p = cal == null ? Calendar.getInstance(Environments.defaultTimeZone(), Environments.defaultLocale()) : Calendar
-				.getInstance(cal.getTimeZone(), Environments.defaultLocale());
+		Calendar p = cal == null ? Calendar.getInstance(Environments.defaultTimeZone(), Environments.defaultLocale())
+				: Calendar.getInstance(cal.getTimeZone(), Environments.defaultLocale());
 		p.setTimeInMillis(date == null ? 0 : date.getTime());
 		return p;
 	}
@@ -475,23 +476,23 @@ class ShowablePreparedStatement extends ShowableStatement implements PreparedSta
 		 * @return SQL 语句
 		 */
 		protected String present() {
-			StringBuilder buffer = new StringBuilder(sql).append(';');
+			StringBuilder buf = new StringBuilder(sql).append(';');
 			int s = 0;
 			for (int i = 1; s < params.size(); i++) {
 				if (i == 1) {
-					buffer.append(" params: ");
+					buf.append(" params: ");
 				} else {
-					buffer.append(',');
+					buf.append(',');
 				}
 
 				Integer key = Integer.valueOf(i);
 				if (params.containsKey(key)) {
 					Object value = params.get(key);
-					buffer.append(String.valueOf(value));
+					buf.append(PreparedParameter.string(value));
 					s++;
 				}
 			}
-			return buffer.toString();
+			return buf.toString();
 		}
 	}
 

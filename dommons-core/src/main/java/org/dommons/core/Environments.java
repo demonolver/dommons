@@ -57,6 +57,12 @@ public final class Environments {
 				String language = getProperty(key);
 				try {
 					if (language != null) {
+						try {
+							Locale l = Locale.forLanguageTag(language);
+							if (l != null) return l;
+						} catch (Throwable t) { // ignored
+						}
+
 						String lang = Stringure.trim(language).replace('-', '_');
 						Locale[] ls = Locale.getAvailableLocales();
 						for (Locale l : ls) {
@@ -97,11 +103,11 @@ public final class Environments {
 	public static Class findClass(String name) {
 		try {
 			return Class.forName(name, false, Environments.class.getClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		try {
 			return Class.forName(name, false, Thread.currentThread().getContextClassLoader());
-		} catch (ClassNotFoundException e) {
+		} catch (Throwable t) {
 		}
 		return null;
 	}
@@ -164,7 +170,7 @@ public final class Environments {
 					return null;
 				}
 			});
-			return Converter.F.convert(v, double.class);
+			if (v != null) return Converter.F.convert(v, double.class);
 		}
 		return 0;
 	}

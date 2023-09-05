@@ -29,6 +29,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 
 	/** 缓存 */
 	final static Numeric[] cache = { zero, one };
+	final static int d_scale = 12;
 
 	/**
 	 * 取正数
@@ -89,6 +90,21 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 */
 	public static boolean between(Number num, Number start, Number end) {
 		return (start != null || end != null) && (start == null || ge(num, min(start, end))) && (end == null || le(num, max(start, end)));
+	}
+
+	/**
+	 * 获取范围内值
+	 * @param <N> 数值类型
+	 * @param num 数值
+	 * @param min 最小值
+	 * @param max 最大值
+	 * @return 结果数值
+	 */
+	public static <N extends Number> N betweenValue(N num, N min, N max) {
+		if (num == null) return null;
+		else if (Numeric.less(num, Numeric.minimum(min, max))) return min;
+		else if (Numeric.greater(num, Numeric.maximum(min, max))) return max;
+		else return num;
 	}
 
 	/**
@@ -173,7 +189,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 			if (d == 0) return 0;
 			n = n.multiply(d);
 		}
-		return n.round(8);
+		return n.round(d_scale);
 	}
 
 	/**
@@ -237,6 +253,15 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	}
 
 	/**
+	 * 取负数
+	 * @param d 数值
+	 * @return 负值
+	 */
+	public static double negate(double d) {
+		return Numeric.valueOf(d).negate().round(d_scale);
+	}
+
+	/**
 	 * 计算乘积
 	 * @param ns 数值集
 	 * @return 数值
@@ -248,7 +273,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 			if (equals(zero, n)) return zero;
 			x = x.multiply(n);
 		}
-		return valueOf(x.r(8));
+		return valueOf(x.dec);
 	}
 
 	/**
@@ -261,7 +286,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		Numeric n = zero;
 		for (double d : ds)
 			n = n.add(d);
-		return n.round(8);
+		return n.round(d_scale);
 	}
 
 	/**
@@ -274,7 +299,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		Numeric x = zero;
 		for (Number n : ns)
 			x = x.add(n);
-		return valueOf(x.r(8));
+		return valueOf(x.dec);
 	}
 
 	/**
@@ -309,7 +334,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	public static Numeric valueOf(double val) {
 		if (val == 0) return zero;
 		Numeric n = numeric(val);
-		return n != null ? n : numeric(new BigDecimal(val));
+		return n != null ? n : numeric(decimal(val));
 	}
 
 	/**
@@ -321,10 +346,12 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		if (num == null) throw new NullPointerException();
 		if (num instanceof Numeric) {
 			return (Numeric) num;
+		} else if (num instanceof BigDecimal) {
+			return numeric((BigDecimal) num);
 		} else {
 			Numeric n = numeric(num.doubleValue());
 			if (n != null) return n;
-			else if (!(num instanceof BigDecimal)) num = new BigDecimal(num.doubleValue());
+			else if (!(num instanceof BigDecimal)) num = decimal(num.doubleValue());
 			return numeric((BigDecimal) num);
 		}
 	}
@@ -373,9 +400,13 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 */
 	protected static Double d(Number num) {
 		if (num == null) return null;
-		if (num instanceof Numeric) num = ((Numeric) num).dec;
-		else if (num instanceof Double || num instanceof Float) num = Numeric.valueOf(num).dec;
-		if (num instanceof BigDecimal) return r((BigDecimal) num, 8).doubleValue();
+		if (num instanceof Numeric) {
+			num = ((Numeric) num).dec;
+		} else if (num instanceof Double || num instanceof Float) {
+			double d = num.doubleValue();
+			if (!Double.isNaN(d) && !Double.isInfinite(d)) num = Numeric.valueOf(num).dec;
+		}
+		if (num instanceof BigDecimal) return r((BigDecimal) num, d_scale).doubleValue();
 		else return num.doubleValue();
 	}
 
@@ -385,7 +416,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 数字对象
 	 */
 	static Numeric numeric(BigDecimal d) {
-		return new Numeric(d);
+		return new Numeric(r(d, d_scale));
 	}
 
 	/**
@@ -417,9 +448,24 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 数字值
 	 */
 	static BigDecimal r(BigDecimal d, int s, Boolean up) {
+		if (d.scale() <= s) return d;
 		int rm = BigDecimal.ROUND_HALF_UP;
 		if (up != null) rm = up ? BigDecimal.ROUND_UP : BigDecimal.ROUND_DOWN;
 		return d.setScale(s, rm).stripTrailingZeros();
+	}
+
+	/**
+	 * 转换数学对象
+	 * @param val 值
+	 * @return 数学对象
+	 */
+	private static BigDecimal decimal(double val) {
+		BigDecimal d1 = new BigDecimal(val);
+		if (d1.scale() > 6) {
+			BigDecimal d2 = BigDecimal.valueOf(val);
+			if (d2.scale() < d1.scale()) return r(d2, d_scale);
+		}
+		return d1;
 	}
 
 	private transient BigDecimal dec;
@@ -446,7 +492,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	public Numeric add(double val) {
-		return add(BigDecimal.valueOf(val));
+		return add(decimal(val));
 	}
 
 	/**
@@ -477,7 +523,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		} else {
 			BigDecimal r = dec;
 			for (double val : vals) {
-				r = r.add(BigDecimal.valueOf(val));
+				r = r.add(decimal(val));
 			}
 			return valueOf(r);
 		}
@@ -501,7 +547,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	public Numeric divide(double val) {
-		return divide(BigDecimal.valueOf(val));
+		return divide(decimal(val));
 	}
 
 	/**
@@ -573,7 +619,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	public Numeric multiply(double val) {
-		return valueOf(dec.multiply(BigDecimal.valueOf(val)));
+		return valueOf(dec.multiply(valueOf(val).dec));
 	}
 
 	/**
@@ -604,7 +650,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 		} else {
 			BigDecimal r = dec;
 			for (double val : vals) {
-				r = r.multiply(BigDecimal.valueOf(val));
+				r = r.multiply(decimal(val));
 			}
 			return valueOf(r);
 		}
@@ -643,7 +689,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	public Numeric subtract(double val) {
-		return valueOf(dec.subtract(BigDecimal.valueOf(val)));
+		return valueOf(dec.subtract(decimal(val)));
 	}
 
 	/**
@@ -677,7 +723,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	 * @return 结果数值
 	 */
 	protected Numeric divide(BigDecimal other) {
-		return valueOf(dec.divide(other, new MathContext(dec.precision() - dec.scale() + 8, RoundingMode.HALF_UP)));
+		return valueOf(dec.divide(other, new MathContext(Math.max(0, dec.precision() - dec.scale() + d_scale), RoundingMode.HALF_UP)));
 	}
 
 	/**
@@ -720,7 +766,7 @@ public class Numeric extends Number implements Serializable, Comparable<Numeric>
 	private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
 		s.defaultReadObject();
 		double d = s.readDouble();
-		dec = new BigDecimal(d);
+		dec = decimal(d);
 	}
 
 	private void writeObject(java.io.ObjectOutputStream s) throws IOException {

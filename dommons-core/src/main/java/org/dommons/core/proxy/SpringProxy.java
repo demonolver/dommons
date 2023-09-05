@@ -31,6 +31,15 @@ class SpringProxy {
 	}
 
 	/**
+	 * 是否代理类
+	 * @param clazz 类
+	 * @return 是否代理
+	 */
+	public static boolean isProxyClass(Class<?> clazz) {
+		return Enhancer.isEnhanced(clazz);
+	}
+
+	/**
 	 * Spring 代理处理器
 	 * @author demon 2017-12-25
 	 */

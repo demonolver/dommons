@@ -14,9 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.dommons.core.Silewarner;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.util.Arrayard;
 
@@ -26,7 +27,20 @@ import org.dommons.core.util.Arrayard;
  */
 public final class BeanProperties {
 
-	static Map<Class, BeanProperty[]> cache = new ConcurrentSoftMap();
+	static Map<Class, BeanProperty[]> cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+
+	/**
+	 * 对象子类型适配
+	 * @param tar 对象实例
+	 * @param cls 类型
+	 * @return 目标类型实例 非子类返回<code>null</code>
+	 */
+	public static <P, T extends P> T cast(P tar, Class<T> cls) {
+		if (tar == null || cls == null) return (T) tar;
+		else if (cls.isInstance(tar)) return cls.cast(tar);
+		else if (tar.getClass().isAssignableFrom(cls)) return BeanProperties.newInstance(cls, tar);
+		else return null;
+	}
 
 	/**
 	 * 克隆数据
@@ -57,16 +71,16 @@ public final class BeanProperties {
 	 * @param tar 目标数据
 	 */
 	public static void copy(Object src, Object tar) {
-		if (src == null || tar == null) return;
-		if (tar instanceof Map) {
-			Map tm = (Map) tar;
-			if (src instanceof Map) tm.putAll((Map) src);
-			else load(tm, src);
-		} else {
-			BeanProperty[] ps = properties(tar.getClass());
-			if (src instanceof Map) load(tar, ps, (Map) src);
-			else load(tar, ps, src);
-		}
+		copy(src, tar, false);
+	}
+
+	/**
+	 * 复制非空属性值
+	 * @param src 源数据
+	 * @param tar 目标数据
+	 */
+	public static void copyNonNull(Object src, Object tar) {
+		copy(src, tar, true);
 	}
 
 	/**
@@ -104,6 +118,25 @@ public final class BeanProperties {
 		Map ps = new LinkedHashMap();
 		copy(obj, ps);
 		return ps;
+	}
+
+	/**
+	 * 复制属性值
+	 * @param src 源数据
+	 * @param tar 目标数据
+	 * @param nonNull 是否仅非空值
+	 */
+	static void copy(Object src, Object tar, boolean nonNull) {
+		if (src == null || tar == null) return;
+		if (tar instanceof Map) {
+			Map tm = (Map) tar;
+			if (src instanceof Map) load(tm, (Map) src, nonNull);
+			else load(tm, src, nonNull);
+		} else {
+			BeanProperty[] ps = properties(tar.getClass());
+			if (src instanceof Map) load(tar, ps, (Map) src, nonNull);
+			else load(tar, ps, src, nonNull);
+		}
 	}
 
 	/**
@@ -154,8 +187,9 @@ public final class BeanProperties {
 	 * 复制到映射表
 	 * @param tm 映射表
 	 * @param src 源数据
+	 * @param nonNull 是否仅非空值
 	 */
-	private static void load(Map tm, Object src) {
+	private static void load(Map tm, Object src, boolean nonNull) {
 		BeanProperty[] ps = properties(src.getClass());
 		for (BeanProperty p : ps) {
 			String name = p.getName();
@@ -164,7 +198,10 @@ public final class BeanProperties {
 			if (m == null) continue;
 			Throwable tt = null;
 			try {
-				tm.put(name, m.invoke(src));
+				if (!m.isAccessible()) m.setAccessible(true);
+				Object v = m.invoke(src);
+				if (v == null && nonNull) continue;
+				tm.put(name, v);
 			} catch (InvocationTargetException e) {
 				tt = e.getTargetException();
 			} catch (Throwable t) {
@@ -176,18 +213,39 @@ public final class BeanProperties {
 	}
 
 	/**
+	 * 映射表复制
+	 * @param tm 目标映射表
+	 * @param src 源映射表
+	 * @param nonNull 是否仅非空值
+	 */
+	private static void load(Map<Object, Object> tm, Map<Object, Object> src, boolean nonNull) {
+		if (!nonNull) {
+			tm.putAll(src);
+		} else {
+			for (Entry<Object, Object> en : src.entrySet()) {
+				if (en.getValue() == null) continue;
+				tm.put(en.getKey(), en.getValue());
+			}
+		}
+	}
+
+	/**
 	 * 从映射表复制
 	 * @param tar 目标数据
 	 * @param ps 属性集
 	 * @param sm 映射表
+	 * @param nonNull 是否仅非空值
 	 */
-	private static void load(Object tar, BeanProperty[] ps, Map sm) {
+	private static void load(Object tar, BeanProperty[] ps, Map sm, boolean nonNull) {
 		for (BeanProperty pd : ps) {
 			Method m = pd.getWriteMethod();
 			if (m == null) continue;
 			String name = pd.getName();
 			Object v = sm.get(name);
-			if (v == null && !sm.containsKey(name)) continue;
+			if (v == null) {
+				if (nonNull) continue;
+				else if (!sm.containsKey(name)) continue;
+			}
 			Throwable tt = null;
 			try {
 				if (!m.isAccessible()) m.setAccessible(true);
@@ -207,8 +265,9 @@ public final class BeanProperties {
 	 * @param tar 目标数据
 	 * @param ps 属性集
 	 * @param src 源数据对象
+	 * @param nonNull 是否仅非空值
 	 */
-	private static void load(Object tar, BeanProperty[] ps, Object src) {
+	private static void load(Object tar, BeanProperty[] ps, Object src, boolean nonNull) {
 		Map<String, BeanProperty> pm = null;
 		if (!tar.getClass().equals(src.getClass())) {
 			pm = new HashMap();
@@ -227,8 +286,13 @@ public final class BeanProperties {
 			if (wm == null || rm == null) continue;
 			Throwable tt = null;
 			try {
+				if (!rm.isAccessible()) rm.setAccessible(true);
 				Object v = rm.invoke(src);
-				wm.invoke(tar, Converter.P.convert(v, wm.getParameterTypes()[0]));
+				if (v == null && nonNull) continue;
+				Class wt = wm.getParameterTypes()[0];
+				if (v == null && wt.isPrimitive()) continue;
+				if (!wm.isAccessible()) wm.setAccessible(true);
+				wm.invoke(tar, Converter.P.convert(v, wt));
 			} catch (InvocationTargetException e) {
 				tt = e.getTargetException();
 			} catch (Throwable t) {

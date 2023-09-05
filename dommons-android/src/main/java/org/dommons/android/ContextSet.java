@@ -41,7 +41,7 @@ public class ContextSet {
 	 */
 	public static File applicationDirectory(Context context) {
 		if (context == null) return null;
-		File directory = new File(Environment.getExternalStorageDirectory(), "Android/data/" + context.getPackageName());
+		File directory = context.getExternalFilesDir(".").getParentFile();
 		if (enableStorage(directory) && !directory.exists()) directory.mkdirs();
 		return directory;
 	}
@@ -155,7 +155,7 @@ public class ContextSet {
 		File f = new File("/", name.replace('\\', '/'));
 		name = f.getAbsolutePath().substring(1);
 
-		File storage = Environment.getExternalStorageDirectory();
+		File storage = get().getExternalFilesDir(".").getParentFile().getParentFile();
 		if (dir.getAbsolutePath().startsWith(storage.getAbsolutePath())) {
 			File file = new File(dir, name);
 			file.getParentFile().mkdirs();

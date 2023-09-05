@@ -3,9 +3,6 @@
  */
 package org.dommons.io.nls;
 
-import java.util.Map;
-
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 import org.dommons.core.proxy.ProxyFactory;
 import org.dommons.core.string.Stringure;
 
@@ -15,36 +12,26 @@ import org.dommons.core.string.Stringure;
  */
 public final class NLSFactory {
 
-	private static final Map<Class, NLS> cache = new ConcurrentSoftMap();
-
 	/**
-	 * @param pack
-	 * @param name
-	 * @param cls
-	 * @return
+	 * 创建多语言信息包
+	 * @param pack 资源包
+	 * @param name 资源名
+	 * @param cls 类型
+	 * @return 多语言信息包
 	 */
 	public static <N extends NLS> N create(Package pack, String name, Class<N> cls) {
 		return create(bundleName(pack, name), cls);
 	}
 
 	/**
-	 * 多语言信息包
+	 * 创建多语言信息包
 	 * @param bundleName 资源包名
 	 * @param cls 类型
 	 * @return 多语言信息包
 	 */
 	public static <N extends NLS> N create(String bundleName, Class<N> cls) {
 		if (cls == null) return null;
-		NLS nls = cache.get(cls);
-		if (nls == null) {
-			nls = create(NLSBundle.get(bundleName), cls);
-			if (nls != null) {
-				synchronized (cache) {
-					cache.put(cls, nls);
-				}
-			}
-		}
-		return (N) nls;
+		return create(NLSBundle.get(bundleName), cls);
 	}
 
 	/**
@@ -86,6 +73,5 @@ public final class NLSFactory {
 		return ProxyFactory.newInstance(new NLSInvoker(bundle), sc, ic);
 	}
 
-	private NLSFactory() {
-	}
+	private NLSFactory() {}
 }

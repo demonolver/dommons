@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.dommons</groupId>
 		<artifactId>dommons</artifactId>
-		<version>0.4.7-SNAPSHOT</version>
+		<version>0.4.8-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -30,7 +30,7 @@
 			<groupId>dom4j</groupId>
 			<artifactId>dom4j</artifactId>
 			<version>1.6.1</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 			<exclusions>
 				<exclusion>
 					<groupId>xml-apis</groupId>
@@ -43,13 +43,19 @@
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.3</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.25</version>
-			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.11</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>cglib</groupId>
@@ -68,26 +74,26 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson.version}</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jackson.version}</version>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<resources>
 			<resource>
-				<directory>src/main/resource</directory>
+				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>**/*.java</exclude>
 				</excludes>

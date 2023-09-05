@@ -17,17 +17,19 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.dommons.android.ContextSet;
 import org.dommons.core.Silewarner;
 import org.dommons.core.collections.map.DataPair;
 import org.dommons.core.collections.map.Mapped;
 import org.dommons.core.env.EnvironmentLoader;
+import org.dommons.core.env.ProguardIgnore;
 import org.dommons.core.string.Stringure;
 
 /**
  * android 环境加载器
  * @author demon 2018-09-19
  */
-public class AndroidEnvLoader extends EnvironmentLoader {
+public class AndroidEnvLoader extends EnvironmentLoader implements ProguardIgnore {
 
 	public Properties load(Properties defaults) {
 		String path = apk();
@@ -86,7 +88,7 @@ public class AndroidEnvLoader extends EnvironmentLoader {
 	}
 
 	private String apk() {
-		String path = path(getClass().getProtectionDomain().getCodeSource().getLocation());
+		String path = ContextSet.get().getPackageResourcePath();
 		if (Stringure.trim(path).toLowerCase().endsWith(".apk")) return path;
 		return null;
 	}

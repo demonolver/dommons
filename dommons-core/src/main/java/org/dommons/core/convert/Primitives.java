@@ -29,6 +29,18 @@ public final class Primitives {
 	}
 
 	/**
+	 * 获取基本类型
+	 * @param type 类型名
+	 * @return 基本类型
+	 */
+	public static Class<?> basicType(String type) {
+		for (Class c : getMap().keySet()) {
+			if (c.getName().equals(type)) return c;
+		}
+		return null;
+	}
+
+	/**
 	 * 获取对应空值
 	 * @param clazz 原生类型
 	 * @return 空值

@@ -7,19 +7,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.map.Mapped;
 import org.dommons.core.collections.map.ci.CaseInsensitiveHashMap;
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.collections.set.CaseInsensitiveHashSet;
 import org.dommons.core.format.text.MessageFormat;
+import org.dommons.core.ref.Ref;
+import org.dommons.core.ref.Softref;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Arrayard;
 import org.dommons.io.Pathfinder;
@@ -31,7 +36,9 @@ import org.dommons.io.prop.Bundles;
  */
 class NLSBundle {
 
-	static Map<String, NLSBundle> bs = new ConcurrentSoftMap();
+	static Map<String, NLSBundle> bs = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
+	static Ref<Map<String, String>> dref;
+	static Map<String, Collection<String>> dls = new ConcurrentSoftMap();
 
 	/**
 	 * 获取多语言包
@@ -97,6 +104,7 @@ class NLSBundle {
 	 * @return 转换后资源包名
 	 */
 	static String convertBundle(String bundleName) {
+		if (bundleName.indexOf('/') > 0) return bundleName;
 		StringBuilder buffer = new StringBuilder();
 		int len = bundleName.length();
 		for (int i = 0; i < len; i++) {
@@ -118,6 +126,19 @@ class NLSBundle {
 	}
 
 	/**
+	 * 获取默认语言关联集
+	 * @return 关联集
+	 */
+	static Map<String, String> defaultLocales() {
+		Map<String, String> map = dref == null ? null : dref.get();
+		if (map == null) {
+			map = load(Pathfinder.getResources("org/dommons/io/nls/locale.default.links"));
+			dref = new Softref(map);
+		}
+		return map;
+	}
+
+	/**
 	 * 获取语言映射集
 	 * @param name 文件路径名
 	 * @param last 文件名
@@ -125,22 +146,33 @@ class NLSBundle {
 	 */
 	static Map<String, String> links(String name, String last) {
 		URL[] us = Pathfinder.getResources(name + ".link");
+		return load(us);
+	}
+
+	/**
+	 * 读取内容
+	 * @param us 路径集
+	 * @return 映射集
+	 */
+	private static Map<String, String> load(URL[] us) {
 		Map<String, String> map = new CaseInsensitiveHashMap(true);
-		for (URL u : us) {
-			try {
-				Bundles.loadContent(map, u);
-			} catch (IOException e) { // ignored
+		if (us != null) {
+			for (URL u : us) {
+				try {
+					Bundles.loadContent(map, u);
+				} catch (IOException e) { // ignored
+				}
 			}
 		}
 		return map;
 	}
 
 	private final String name;
-
 	private final Map<String, Collection<URL>> us;
-	private final Map<String, String> links;
 
+	private final Map<String, String> links;
 	private Map<String, Map<String, String>> cs;
+
 	private Map<String, MessageFormat> fs;
 
 	public NLSBundle(String name, Map<String, String> links, Map<String, Collection<URL>> us) {
@@ -179,11 +211,11 @@ class NLSBundle {
 	public String get(Locale locale, String key) {
 		key = Stringure.trim(key);
 		if (Stringure.isEmpty(key)) return null;
-		Collection<String> ls = new LinkedHashSet();
-		if (locale != null) Arrayard.addAll(ls, NLSLocal.locales(locale));
-		Arrayard.addAll(ls, NLSLocal.locales());
+		Collection<String> ls = new CaseInsensitiveHashSet(true);
+		if (locale != null) mergeLocales(ls, NLSLocal.locales(locale));
+		mergeLocales(ls, NLSLocal.locales());
 		ls.add(Stringure.empty);
-		Arrayard.addAll(ls, NLSLocal.defaultLocales());
+		mergeLocales(ls, NLSLocal.defaultLocales());
 		String x = null;
 		for (String l : ls) {
 			x = load(l, key);
@@ -242,7 +274,7 @@ class NLSBundle {
 				load(u, map);
 			} else if (links != null) {
 				String t = links.get(s);
-				if (!Stringure.isEmpty(t) && xs.add(t)) return contexts(t);
+				if (!Stringure.isEmpty(t) && xs.add(t)) return contexts(t, xs);
 			}
 			cs.put(s, map);
 		}
@@ -267,5 +299,43 @@ class NLSBundle {
 			} catch (IOException e) { // ignored
 			}
 		}
+	}
+
+	/**
+	 * 合并语言集
+	 * @param ls 语言集
+	 * @param locales 待追加集
+	 */
+	void mergeLocales(Collection<String> ls, String... locales) {
+		if (locales == null) return;
+		for (String l : locales) {
+			if (!ls.add(l)) continue;
+			Collection<String> d = defaultLink(l);
+			if (!Arrayard.isEmpty(d)) ls.addAll(d);
+		}
+	}
+
+	/**
+	 * 默认关联语言
+	 * @param l 语言
+	 * @return 关联语言
+	 */
+	private Collection<String> defaultLink(String l) {
+		l = l.toLowerCase();
+		Collection<String> ds = dls.get(l);
+		if (ds == null) {
+			Map<String, String> dms = defaultLocales();
+			String v = dms.get("link." + l);
+			if (v != null) {
+				String[] ls = v.split("(\\s*[,:;]\\s*)+");
+				ds = new LinkedList<String>();
+				Arrayard.addAll(ds, ls);
+				ds.remove(Stringure.empty);
+			} else {
+				ds = Collections.EMPTY_LIST;
+			}
+			dls.put(l, ds);
+		}
+		return ds;
 	}
 }

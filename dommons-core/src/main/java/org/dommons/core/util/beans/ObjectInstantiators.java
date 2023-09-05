@@ -19,10 +19,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.map.ci.CaseInsensitiveHashMap;
 import org.dommons.core.collections.map.ci.CaseInsensitiveMap;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.collections.map.concurrent.ConcurrentWeakMap;
 import org.dommons.core.collections.stack.LinkedStack;
 import org.dommons.core.collections.stack.Stack;
 import org.dommons.core.convert.Converter;
@@ -30,6 +32,7 @@ import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.ref.Strongref;
 import org.dommons.core.string.Stringure;
+import org.dommons.core.util.beans.ObjectInstantiator.ObjectCreator;
 
 /**
  * 数据对象构造器
@@ -37,10 +40,30 @@ import org.dommons.core.string.Stringure;
  */
 public class ObjectInstantiators {
 
-	private static final Map<Class, Ref<Constructor>> cmap = new ConcurrentSoftMap();
-	private static final Map<Class, org.dommons.core.util.beans.ObjectInstantiator> imap = new ConcurrentSoftMap();
+	private static final Map<Class, Ref<Constructor>> cmap = new ConcurrentWeakMap();
+	private static final Map<Class, org.dommons.core.util.beans.ObjectInstantiator> imap = new ConcurrentWeakMap();
 
 	private static Ref<ClassObjectInstantiator> iref;
+
+	/**
+	 * 通过对象实例化器生成对象创建器
+	 * @param clazz 对象类型
+	 * @param instantiator 实例化器
+	 * @return 对象创建器
+	 */
+	public static <O> ObjectCreator<O> creator(final Class<O> clazz, final ObjectInstantiator<O> instantiator) {
+		return new ObjectCreator<O>() {
+			@Override
+			public boolean isInstance(Object o) {
+				return clazz.isInstance(o);
+			}
+
+			@Override
+			public O newInstance() {
+				return instantiator.newInstance();
+			}
+		};
+	}
 
 	/**
 	 * 获取对象实例化器
@@ -214,7 +237,7 @@ public class ObjectInstantiators {
 			super();
 			lmethod = method("lookupAny", Class.class);
 			method = method("newInstance", Class.class);
-			map = new ConcurrentSoftMap();
+			map = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 		}
 
 		public <O> O newInstance(Class clazz) {
@@ -249,7 +272,7 @@ public class ObjectInstantiators {
 		public DefaultObjectInstantiator() {
 			super();
 			method = method("newInstance");
-			map = new ConcurrentSoftMap();
+			map = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 		}
 
 		public <O> O newInstance(Class clazz) {

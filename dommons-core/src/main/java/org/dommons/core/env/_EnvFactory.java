@@ -31,7 +31,11 @@ public final class _EnvFactory {
 	 * @return 配置集
 	 */
 	public static Properties properties() {
-		if (properties == null) properties = new _EnvFactory().load();
+		if (properties == null) {
+			synchronized (_EnvFactory.class) {
+				if (properties == null) properties = new _EnvFactory().load();
+			}
+		}
 		return properties;
 	}
 
@@ -76,8 +80,8 @@ public final class _EnvFactory {
 	protected String[] loaders() {
 		Collection<String> ls = new LinkedHashSet();
 		try {
-			Enumeration<URL> en = Thread.currentThread().getContextClassLoader()
-					.getResources("META-INF/" + EnvironmentLoader.class.getName());
+			ClassLoader cl = Thread.currentThread().getContextClassLoader();
+			Enumeration<URL> en = ResourcesFind.getResources(cl, "META-INF/" + EnvironmentLoader.class.getName());
 			while (en != null && en.hasMoreElements()) {
 				URL u = en.nextElement();
 				if (u == null) continue;

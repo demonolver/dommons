@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
+import java.net.URLConnection;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
@@ -86,8 +88,21 @@ public class HttpConnector {
 	 * @throws IOException
 	 */
 	public static HttpURLConnection connect(String url, int timeout, Map<String, String> headers) throws IOException {
+		return connect(url, timeout, headers, null);
+	}
+
+	/**
+	 * 连接地址
+	 * @param url 请求地址
+	 * @param timeout 连接超时时长
+	 * @param headers 报文头
+	 * @param proxy 请求代理服务
+	 * @return HTTP 连接
+	 * @throws IOException
+	 */
+	public static HttpURLConnection connect(String url, int timeout, Map<String, String> headers, Proxy proxy) throws IOException {
 		URL u = url(url);
-		return connect(u, timeout, headers);
+		return connect(u, timeout, headers, proxy);
 	}
 
 	/**
@@ -110,11 +125,24 @@ public class HttpConnector {
 	 * @throws IOException
 	 */
 	public static HttpURLConnection connect(URL url, int timeout, Map<String, String> headers) throws IOException {
+		return connect(url, timeout, headers, null);
+	}
+
+	/**
+	 * 连接地址
+	 * @param url 请求地址
+	 * @param timeout 连接超时时长
+	 * @param headers 报文头
+	 * @param proxy 请求代理服务
+	 * @return HTTP 连接
+	 * @throws IOException
+	 */
+	public static HttpURLConnection connect(URL url, int timeout, Map<String, String> headers, Proxy proxy) throws IOException {
 		if (url == null) return null;
 		HttpURLConnection conn = null;
 		if ("https".equals(url.getProtocol())) {
 			SSLContext ctx = ssl();
-			HttpsURLConnection connHttps = (HttpsURLConnection) url.openConnection();
+			HttpsURLConnection connHttps = (HttpsURLConnection) openConnection(url, proxy);
 			connHttps.setSSLSocketFactory(ctx.getSocketFactory());
 			connHttps.setHostnameVerifier(new HostnameVerifier() {
 				public boolean verify(String hostname, SSLSession session) {
@@ -123,7 +151,7 @@ public class HttpConnector {
 			});
 			conn = connHttps;
 		} else {
-			conn = (HttpURLConnection) url.openConnection();
+			conn = (HttpURLConnection) openConnection(url, proxy);
 		}
 		authorization(conn, url.getUserInfo()); // 用户信息授权
 
@@ -355,6 +383,18 @@ public class HttpConnector {
 			if (k == null || v == null) continue;
 			conn.setRequestProperty(k, v);
 		}
+	}
+
+	/**
+	 * 开启连接
+	 * @param url 请求地址
+	 * @param proxy 连接代理
+	 * @return 连接
+	 * @throws IOException
+	 */
+	static URLConnection openConnection(URL url, Proxy proxy) throws IOException {
+		if (proxy == null) return url.openConnection();
+		else return url.openConnection(proxy);
 	}
 
 	/**

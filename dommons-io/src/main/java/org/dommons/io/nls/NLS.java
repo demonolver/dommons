@@ -5,13 +5,15 @@ package org.dommons.io.nls;
 
 import java.util.Locale;
 
+import org.dommons.core.env.ProguardIgnore;
+
 /**
  * 多语言信息接口
  * @author demon 2017-01-06
  * @see NLSFactory#create(String, Class)
  * @see NLSFactory#create(Package, String, Class)
  */
-public interface NLS {
+public interface NLS extends ProguardIgnore {
 
 	/**
 	 * 获取当前语言环境

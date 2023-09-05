@@ -8,6 +8,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilterInputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,7 +33,7 @@ public final class Zipper {
 
 	/** GZIP 压缩最小有效字节数, 少于有可能压缩后比原内容更大 */
 	public static int gzip_min_size = 180;
-	
+
 	/**
 	 * GZIP 解压
 	 * @param bytes 内容
@@ -200,6 +202,20 @@ public final class Zipper {
 	}
 
 	/**
+	 * 形似 GZIP 格式内容
+	 * @param bytes 内容
+	 * @return 是、否
+	 */
+	public static boolean likeGzip(byte[] bytes) {
+		byte[] head = { 0x1f, (byte) 0x8b, 0x08 };
+		if (bytes.length < head.length) return false;
+		for (int i = 0, l = head.length; i < l; i++) {
+			if (bytes[i] != head[i]) return false;
+		}
+		return true;
+	}
+
+	/**
 	 * 解压缩
 	 * @param zip 压缩文件
 	 * @param target 目标目录
@@ -295,7 +311,7 @@ public final class Zipper {
 		size = Math.max(128, size);
 		try {
 			byte[] bs = new byte[size];
-			gis = new GZIPInputStream(is);
+			gis = new GZIPInputStream(new NocloseInputStream(is));
 			for (int r = 0; (r = gis.read(bs)) != -1;) {
 				os.write(bs, 0, r);
 				os.flush();
@@ -318,7 +334,7 @@ public final class Zipper {
 		GZIPOutputStream gos = null;
 		try {
 			byte[] bs = new byte[size];
-			gos = new GZIPOutputStream(os);
+			gos = new GZIPOutputStream(new NocloseOutputStream(os));
 			for (int r = 0; (r = is.read(bs)) != -1;) {
 				gos.write(bs, 0, r);
 				gos.flush();
@@ -386,6 +402,41 @@ public final class Zipper {
 	/**
 	 * 构造函数
 	 */
-	protected Zipper() {
+	protected Zipper() {}
+
+	/**
+	 * 不关闭输入流包装
+	 * @author demon 2019-12-13
+	 */
+	static class NocloseInputStream extends FilterInputStream {
+
+		public NocloseInputStream(InputStream in) {
+			super(in);
+		}
+
+		@Override
+		public void close() throws IOException {}
+	}
+
+	/**
+	 * 不关闭输出流包装
+	 * @author demon 2019-12-13
+	 */
+	static class NocloseOutputStream extends FilterOutputStream {
+
+		/**
+		 * @param out
+		 */
+		public NocloseOutputStream(OutputStream out) {
+			super(out);
+		}
+
+		@Override
+		public void close() throws IOException {
+			try {
+				flush();
+			} catch (IOException ignored) {
+			}
+		}
 	}
 }

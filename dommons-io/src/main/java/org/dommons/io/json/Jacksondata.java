@@ -6,22 +6,26 @@ package org.dommons.io.json;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
-import org.dommons.core.collections.stack.LinkedStack;
-import org.dommons.core.collections.stack.Stack;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.string.Stringure;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.MapType;
 
 /**
  * Jackson 数据
@@ -30,6 +34,21 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 public class Jacksondata {
 	private static Map<Boolean, ObjectMapper> oms = new ConcurrentSoftMap();
 	private static Ref<PropertyNamingStrategyBase> pref;
+
+	/**
+	 * 配置转换器
+	 * @param mapper 转换器实例
+	 * @param underscore 大写属性名是否转成小写下划线
+	 */
+	public static void configure(ObjectMapper mapper, boolean underscore) {
+		if (mapper == null) return;
+		mapper.configure(com.fasterxml.jackson.databind.MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, false);
+		mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+		mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+		if (underscore) mapper.setPropertyNamingStrategy(strategy());
+	}
 
 	/**
 	 * 转换小写&下划线属性名
@@ -52,7 +71,7 @@ public class Jacksondata {
 
 	/**
 	 * 获取数据转换器
-	 * @param underscore 大写属性名是转成小写下划线
+	 * @param underscore 大写属性名是否转成小写下划线
 	 * @return 转换器
 	 */
 	public static ObjectMapper mapper(boolean underscore) {
@@ -60,15 +79,29 @@ public class Jacksondata {
 		ObjectMapper mapper = oms.get(b);
 		if (mapper == null) {
 			mapper = new ObjectMapper();
-			mapper.configure(com.fasterxml.jackson.databind.MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, false);
-			mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-			mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-			mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
-			if (underscore) mapper.setPropertyNamingStrategy(strategy());
+			configure(mapper, underscore);
 			oms.put(b, mapper);
 		}
 		return mapper;
+	}
+
+	/**
+	 * 转换为修饰后的字符串
+	 * @param obj 目标对象
+	 * @return 字符串
+	 */
+	public static String pretty(Object obj) {
+		return pretty(obj, false);
+	}
+
+	/**
+	 * 转换为修饰后的字符串
+	 * @param obj 目标对象
+	 * @param underscore 大写属性名是转成小写下划线
+	 * @return 字符串
+	 */
+	public static String pretty(Object obj, boolean underscore) {
+		return string(obj, underscore, true);
 	}
 
 	/**
@@ -78,9 +111,28 @@ public class Jacksondata {
 	 */
 	public static Map<String, String> split(String json) {
 		if (json == null || !json.startsWith("{") || !json.endsWith("}")) return null;
-		json = Stringure.subString(json, 1, -1);
+		ObjectMapper mapper = mapper();
+		ObjectNode obj = null;
+		read: {
+			try {
+				JsonNode node = mapper.readTree(json);
+				if (node instanceof ObjectNode) {
+					obj = (ObjectNode) node;
+					break read;
+				}
+			} catch (IOException e) { // ignored
+			}
+			return null;
+		}
+
 		Map<String, String> map = new LinkedHashMap();
-		split(json, map);
+		for (Iterator<Entry<String, JsonNode>> it = obj.fields(); it.hasNext();) {
+			Entry<String, JsonNode> en = it.next();
+			try {
+				map.put(en.getKey(), mapper.writeValueAsString(en.getValue()));
+			} catch (JsonProcessingException e) { // ignored
+			}
+		}
 		return map;
 	}
 
@@ -100,10 +152,22 @@ public class Jacksondata {
 	 * @return 字符串
 	 */
 	public static String string(Object obj, boolean underscore) {
+		return string(obj, underscore, false);
+	}
+
+	/**
+	 * 对象转换为字符串
+	 * @param obj 目标对象
+	 * @param underscore 大写属性名是转成小写下划线
+	 * @param pretty
+	 * @return 字符串
+	 */
+	public static String string(Object obj, boolean underscore, boolean pretty) {
 		try {
 			if (obj == null) return null;
 			else if (obj instanceof CharSequence) return String.valueOf(obj);
-			else return mapper(underscore).writeValueAsString(obj);
+			else if (!pretty) return mapper(underscore).writeValueAsString(obj);
+			else return mapper(underscore).writerWithDefaultPrettyPrinter().writeValueAsString(obj);
 		} catch (IOException e) {
 			throw Converter.F.convert(e, RuntimeException.class);
 		}
@@ -127,18 +191,72 @@ public class Jacksondata {
 	 * @param elemType 元素类型
 	 * @return 集合 JSON 类型
 	 */
-	@SuppressWarnings("deprecation")
 	public static JavaType typeCollection(Class<? extends Collection> rawType, Class<?> elemType) {
-		if (rawType == null) rawType = LinkedList.class;
 		JavaType elem = type(elemType);
+		return typeCollection(rawType, elem);
+	}
+
+	/**
+	 * 转换集合类型
+	 * @param rawType 集合类型
+	 * @param elemType 元素类型
+	 * @return 集合 JSON 类型
+	 */
+	@SuppressWarnings("deprecation")
+	public static JavaType typeCollection(Class<? extends Collection> rawType, JavaType elemType) {
+		if (rawType == null) rawType = LinkedList.class;
 		try {
-			JavaType type = JsonCollectionType.collection(rawType, elem);
+			JavaType type = JsonCollectionType.collection(rawType, elemType);
 			if (type != null) return type;
 		} catch (Throwable t) { // ignored
 		}
 		{
-			return CollectionType.construct(rawType, elem);
+			return CollectionType.construct(rawType, elemType);
 		}
+	}
+
+	/**
+	 * 转换集合类型
+	 * @param rawType 集合类型
+	 * @param elemType 元素类型
+	 * @return 集合 JSON 类型
+	 */
+	public static JavaType typeCollection(Class<? extends Collection> rawType, Type elemType) {
+		JavaType elem = type(elemType);
+		return typeCollection(rawType, elem);
+	}
+
+	/**
+	 * 转换映射表类型
+	 * @param mapType 映射表类型
+	 * @param keyT 键类型
+	 * @param valueT 值类型
+	 * @return 映射表 JSON 类型
+	 */
+	@SuppressWarnings("deprecation")
+	public static JavaType typeMap(Class<? extends Map> mapType, JavaType keyT, JavaType valueT) {
+		return MapType.construct(mapType, keyT, valueT);
+	}
+
+	/**
+	 * 转换映射表类型
+	 * @param mapType 映射表类型
+	 * @param keyT 键类型
+	 * @param valueT 值类型
+	 * @return 映射表 JSON 类型
+	 */
+	public static JavaType typeMap(Class<? extends Map> mapType, Type keyT, Type valueT) {
+		return typeMap(mapType, type(keyT), type(valueT));
+	}
+
+	/**
+	 * 转换映射表类型
+	 * @param keyT 键类型
+	 * @param valueT 值类型
+	 * @return 映射表 JSON 类型
+	 */
+	public static JavaType typeMap(Type keyT, Type valueT) {
+		return typeMap(Map.class, keyT, valueT);
 	}
 
 	/**
@@ -179,61 +297,4 @@ public class Jacksondata {
 		return pns;
 	}
 
-	/**
-	 * 拆分响应内容
-	 * @param r 内容
-	 * @param map 目标集
-	 */
-	static void split(String r, Map<String, String> map) {
-		StringBuilder buf = new StringBuilder();
-		String key = null;
-		Stack<Character> sgs = new LinkedStack();
-		boolean force = false, kp = true;
-		for (int i = 0, l = r.length(); i <= l; i++) {
-			if (i < l) v: {
-				char c = r.charAt(i);
-				if (force || c == '\\') {
-					force = !force;
-				} else if (kp) {
-					if (c == '\'' || c == '\"') {
-						Character s = sgs.peek();
-						if (Character.valueOf(c).equals(s)) {
-							sgs.pop();
-							if (sgs.isEmpty()) {
-								key = buf.toString();
-								buf.setLength(0);
-								continue;
-							}
-						} else {
-							sgs.push(c);
-							if (s == null) continue;
-						}
-					} else if (c == ':' && sgs.isEmpty() && !Stringure.isEmpty(key)) {
-						kp = false;
-						continue;
-					}
-				} else if (c == '\'' || c == '\"') {
-					Character s = sgs.peek();
-					if (Character.valueOf(c).equals(s)) sgs.pop();
-					else sgs.push(c);
-				} else if (c == '{' || c == '[') {
-					sgs.push(c);
-				} else if (c == '}' && Character.valueOf('{').equals(sgs.peek())) {
-					sgs.pop();
-				} else if (c == ']' && Character.valueOf('[').equals(sgs.peek())) {
-					sgs.pop();
-				} else if (c == ',' && sgs.isEmpty()) {
-					break v;
-				}
-				buf.append(c);
-				continue;
-			}
-			String v = buf.toString();
-			buf.setLength(0);
-			kp = true;
-			force = false;
-			if (!Stringure.isEmpty(key)) map.put(key, v);
-			key = null;
-		}
-	}
 }

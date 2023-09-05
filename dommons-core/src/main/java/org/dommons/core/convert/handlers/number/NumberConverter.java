@@ -15,17 +15,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import org.dommons.core.Environments;
 import org.dommons.core.Silewarner;
 import org.dommons.core.convert.ConvertHandler;
 import org.dommons.core.convert.handlers.AbstractLocaleConverter;
 import org.dommons.core.format.number.NumericFormat;
 import org.dommons.core.format.number.RadixFormat;
 import org.dommons.core.string.Stringure;
+import org.dommons.core.util.Arrayard;
 
 /**
  * 抽象数字转换器
@@ -69,14 +72,16 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 				String n = k.substring(8);
 				String format = props.getProperty("format." + n);
 				String type = props.getProperty(Stringure.join('.', "format", n, "type"), "numeric");
-				String locale = props.getProperty(Stringure.join('.', "format", n, "locale"));
+				String current = props.getProperty(Stringure.join('.', "format", n, "locale.current"));
+				String excludes = props.getProperty(Stringure.join('.', "format", n, "locale.exclude"));
+				String locale = Stringure.one(current, props.getProperty(Stringure.join('.', "format", n, "locale")));
 
 				try {
 					int prio = Integer.parseInt(props.getProperty("priority." + n));
 					if (pattern != null && format != null) {
 						Pattern key = Pattern.compile(pattern);
 						NumberFormat nf = "radix".equals(type) ? new RadixFormat(format) : new NumericFormat(format, locale(locale));
-						formats.put(n, new StringNumeric(key, nf));
+						formats.put(n, new StringNumeric(key, nf, split(current), split(excludes)));
 
 						Integer p = Integer.valueOf(prio);
 						Collection<String> ps = prios.get(p);
@@ -108,11 +113,21 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		return load(NumberConverter.class, "number.converters");
 	}
 
+	static String[] split(String s) {
+		String[] ss = Stringure.split(s, ',');
+		if (ss == null) return null;
+		Collection<String> list = new HashSet<String>();
+		for (String st : ss) {
+			if (Stringure.isEmpty(st)) continue;
+			list.add(Stringure.trim(st).toLowerCase());
+		}
+		return list.isEmpty() ? null : Arrayard.toArray(list, String.class);
+	}
+
 	/**
 	 * 构造函数
 	 */
-	protected NumberConverter() {
-	}
+	protected NumberConverter() {}
 
 	public T convert(Object value, Class<? extends Object> source, Class<T> target) {
 		initialize();
@@ -148,9 +163,11 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 	 */
 	private Number parseString(String str) {
 		str = Stringure.trim(str);
+		if ("null".equals(str)) return null;
 		try {
+			Locale l = Environments.defaultLocale();
 			for (StringNumeric sn : formats) {
-				if (sn.matches(str)) return sn.parse(str);
+				if (sn.matches(str, l)) return sn.parse(str);
 			}
 		} catch (ParseException e) {
 			// ignore
@@ -168,15 +185,21 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 
 		private final Pattern pattern;
 		private final NumberFormat format;
+		private final String[] includes;
+		private final String[] excludes;
 
 		/**
 		 * 构造函数
 		 * @param pattern 正则
 		 * @param format 数值格式
+		 * @param includes 包含语言集
+		 * @param excludes 排除语言集
 		 */
-		public StringNumeric(Pattern pattern, NumberFormat format) {
+		public StringNumeric(Pattern pattern, NumberFormat format, String[] includes, String[] excludes) {
 			this.pattern = pattern;
 			this.format = format;
+			this.includes = includes;
+			this.excludes = excludes;
 		}
 
 		public boolean equals(Object o) {
@@ -190,10 +213,34 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		/**
 		 * 是否匹配值
 		 * @param value 值
+		 * @param locale 当前语言环境
 		 * @return 是、否
 		 */
-		public boolean matches(String value) {
+		public boolean matches(String value, Locale locale) {
+			if (!matchLocale(locale)) return false;
 			return pattern.matcher(value).matches();
+		}
+
+		/**
+		 * @param locale
+		 * @return
+		 */
+		protected boolean matchLocale(Locale locale) {
+			if (includes != null) return match(locale, includes);
+			if (excludes != null) return !match(locale, excludes);
+			return true;
+		}
+
+		/**
+		 * @param locale
+		 * @param ls
+		 * @return
+		 */
+		protected boolean match(Locale locale, String[] ls) {
+			String s = Stringure.join('_', locale.getLanguage(), locale.getCountry()).toLowerCase();
+			for (String l : ls)
+				if (s.startsWith(l)) return true;
+			return false;
 		}
 
 		/**

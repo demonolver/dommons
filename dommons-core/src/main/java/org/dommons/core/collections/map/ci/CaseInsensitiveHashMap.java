@@ -5,8 +5,6 @@ package org.dommons.core.collections.map.ci;
 
 import java.util.HashMap;
 
-import org.dommons.core.collections.map.ci.AbsCaseInsensitiveMap;
-
 /**
  * 无视键值大小写的映射表
  * @author Demon 2011-10-19

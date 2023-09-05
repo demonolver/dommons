@@ -32,6 +32,7 @@ public class ThreadsExecutor extends AbsThreadsExecutor {
 	}
 
 	public final int size;
+	private final int min;
 
 	public ThreadsExecutor() {
 		this(Runtime.getRuntime().availableProcessors() + 1);
@@ -56,9 +57,16 @@ public class ThreadsExecutor extends AbsThreadsExecutor {
 	public ThreadsExecutor(int size, ThreadFactory threadFactory, Queue queue) {
 		super(threadFactory, queue);
 		this.size = Math.max(1, size);
+		int as = Runtime.getRuntime().availableProcessors();
+		this.min = this.size > as ? as : (this.size / 2);
 	}
 
 	protected int maxSize() {
 		return size;
+	}
+
+	@Override
+	protected int minSize() {
+		return min;
 	}
 }

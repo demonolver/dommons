@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.dommons.core.Assertor;
 import org.dommons.core.Environments;
+import org.dommons.core.Silewarner;
 import org.dommons.core.convert.Converter;
 import org.dommons.core.string.Stringure;
 import org.dommons.io.prop.Bundles;
@@ -162,6 +163,7 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 			return result;
 		} catch (SQLException e) {
 			se = e;
+			time = System.currentTimeMillis() - time;
 			throw transform(e, batchs == null ? null : batchs.toArray());
 		} finally {
 			logBatchs(se, toResult(result), time);
@@ -246,6 +248,7 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 			return r;
 		} catch (SQLException e) {
 			se = e;
+			time = System.currentTimeMillis() - time;
 			throw transform(e, sql);
 		} finally {
 			if (se == null && r instanceof Boolean) {
@@ -279,7 +282,7 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 				try {
 					if (rs != null) rs.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					Silewarner.warn(ShowableConnection.class, "connection close", e);
 				}
 			}
 			last = null;
@@ -299,16 +302,17 @@ class ShowableStatement extends EssentialCallableStatement<ShowableConnection> i
 		String s = String.valueOf(sql);
 		if (!s.endsWith(";")) s += ';';
 
+		String connectID = conn.unique(conn.connectID);
 		if (se == null) {
 			int r = Converter.F.convert(result, int.class);
 			if (time < time_limit && r < count_limit) {
-				ShowableConnection.logger.debug(JDBCMessages.m.sql_execute_success(), conn.name, conn.connectID, s, result, time);
+				ShowableConnection.logger.debug(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, time);
 			} else {
-				ShowableConnection.logger.info(JDBCMessages.m.sql_execute_success(), conn.name, conn.connectID, s, result, time);
+				ShowableConnection.logger.info(JDBCMessages.m.sql_execute_success(), conn.name, connectID, s, result, time);
 			}
 		} else {
-			ShowableConnection.logger.warn(JDBCMessages.m.sql_execute_error(), conn.name, conn.connectID, s, se.getErrorCode(),
-				se.getSQLState(), se.getMessage());
+			ShowableConnection.logger.warn(JDBCMessages.m.sql_execute_error(), conn.name, connectID, s, se.getErrorCode(), se.getSQLState(),
+				se.getMessage(), time);
 		}
 	}
 

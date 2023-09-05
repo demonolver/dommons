@@ -10,13 +10,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.cache.MemcacheMap;
 import org.dommons.core.collections.queue.TreeQueue;
 import org.dommons.core.number.Radix64.Radix64Digits;
 import org.dommons.core.string.Stringure;
+import org.dommons.core.util.Arrayard;
 import org.dommons.security.cipher.MD5Cipher;
 
 /**
@@ -25,7 +27,7 @@ import org.dommons.security.cipher.MD5Cipher;
  */
 public class Shorten extends Radix64Digits {
 
-	private static final Map<CharSequence, CharSequence> shorts = new ConcurrentSoftMap();
+	private static final Map<CharSequence, CharSequence> shorts = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 	private static final Charset cs = Stringure.charset(true, "utf8", "gbk", "iso-8859-1");
 
 	/**
@@ -107,18 +109,24 @@ public class Shorten extends Radix64Digits {
 			else if ("https".equalsIgnoreCase(url.getProtocol()) && url.getPort() == 443) break port;
 			buf.append(':').append(url.getPort());
 		}
+		buf.append('/');
 
 		{
 			String path = url.getPath();
 			Matcher m = Pattern.compile("([^\\/]+)\\/+").matcher(path);
 			Collection<String> list = new ArrayList();
-			int tail = -1;
+			int tail = 0;
 			while (m.find()) {
-				list.add(Stringure.trim(m.group(1)));
+				String p = Stringure.trim(m.group(1));
+				if (!p.isEmpty()) list.add(p);
 				tail = m.end();
 			}
-			if (tail < path.length() - 1) list.add(path.substring(tail));
-			String[] ps = list.toArray(new String[list.size()]);
+			if (tail < path.length() - 1) {
+				String p = Stringure.trim(path.substring(Math.max(0, tail)));
+				if (p.startsWith("/")) p = Stringure.trim(p.substring(1));
+				if (!p.isEmpty()) list.add(p);
+			}
+			String[] ps = Arrayard.toArray(list, String.class);
 			list.clear();
 			for (int i = 0; i < ps.length; i++) {
 				if (!"..".equals(ps[i])) continue;
@@ -132,7 +140,7 @@ public class Shorten extends Radix64Digits {
 			}
 
 			for (int i = 0; i < ps.length; i++) {
-				buf.append('/');
+				if (i > 0) buf.append('/');
 				buf.append(ps[i]);
 			}
 		}

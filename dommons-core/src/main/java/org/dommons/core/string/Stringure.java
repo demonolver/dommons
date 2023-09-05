@@ -8,15 +8,18 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -44,6 +47,9 @@ public final class Stringure {
 	/** 空字节数组 */
 	public static final byte[] embytes = new byte[0];
 
+	/** UTF-8 字符集 */
+	public static Charset utf_8 = charset("utf-8");
+
 	/**
 	 * 获取字符集
 	 * @param defaultable 允许最后使用默认字符集
@@ -52,7 +58,7 @@ public final class Stringure {
 	 * @throws UnsupportedCharsetException
 	 */
 	public static Charset charset(boolean defaultable, String... names) throws UnsupportedCharsetException {
-		List<RuntimeException> res = new ArrayList();
+		Queue<RuntimeException> res = new LinkedList();
 		if (names != null) {
 			for (String n : names) {
 				try {
@@ -63,7 +69,7 @@ public final class Stringure {
 			}
 		}
 		if (defaultable) return Environments.defaultCharset();
-		else if (res.size() == 1) throw res.get(0);
+		else if (res.size() == 1) throw res.poll();
 		else throw new UnsupportedCharsetException(Stringure.join(',', names));
 	}
 
@@ -243,7 +249,7 @@ public final class Stringure {
 	 */
 	public static String convertVariables(CharSequence str, Map vars) {
 		if (str == null) return null;
-		else if (Arrayard.isEmpty(vars)) return Converter.F.convert(str, String.class);
+		else if (vars == null) vars = Collections.EMPTY_MAP;
 
 		StringBuilder result = new StringBuilder(32);
 		try {
@@ -259,8 +265,22 @@ public final class Stringure {
 	 * @param vs 字符串集
 	 * @return 新字符串集
 	 */
-	public static String[] deduplicate(String[] vs) {
+	public static String[] deduplicate(String... vs) {
 		return deduplicate(vs, 0);
+	}
+
+	/**
+	 * 去除重复串
+	 * @param vs 字符串集
+	 * @param trim 是否去除空格
+	 * @param ignoreCase 是否忽略大小写
+	 * @return 新字符串集
+	 */
+	public static String[] deduplicate(String[] vs, boolean trim, boolean ignoreCase) {
+		int t = 0;
+		if (trim) t |= 1;
+		if (ignoreCase) t |= 2;
+		return deduplicate(vs, t);
 	}
 
 	/**
@@ -532,7 +552,7 @@ public final class Stringure {
 		if (str == null) return true;
 		int len = str.length();
 		for (int i = 0; i < len; i++) {
-			if (!Character.isWhitespace(str.charAt(i))) return false;
+			if (!isEmpty(str.charAt(i))) return false;
 		}
 		return true;
 	}
@@ -1544,6 +1564,27 @@ public final class Stringure {
 	/**
 	 * 将字节流转为字符串
 	 * @param bytes 字节流
+	 * @param dc 字符反序列
+	 * @return 字符串
+	 */
+	public static String toString(byte[] bytes, CharsetDecoder dc) {
+		return toString(bytes, 0, bytes == null ? 0 : bytes.length, dc);
+	}
+
+	/**
+	 * 将字节流转为字符串
+	 * @param bytes 字节流
+	 * @param dc 字符反序列
+	 * @param buffer 目标缓存区
+	 * @return 字符缓存区
+	 */
+	public static <A extends Appendable> A toString(byte[] bytes, CharsetDecoder dc, A buffer) {
+		return toString(bytes, 0, bytes == null ? 0 : bytes.length, dc, buffer);
+	}
+
+	/**
+	 * 将字节流转为字符串
+	 * @param bytes 字节流
 	 * @param offset 起始位
 	 * @param length 长度
 	 * @param cs 字符集
@@ -1563,22 +1604,43 @@ public final class Stringure {
 	 * @return 字符缓存区
 	 */
 	public static <A extends Appendable> A toString(byte[] bytes, int offset, int length, Charset cs, A buffer) {
+		CharsetDecoder dc = null;
+		if (cs != null) dc = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
+		return toString(bytes, offset, length, dc, buffer);
+	}
+
+	/**
+	 * 将字节流转为字符串
+	 * @param bytes 字节流
+	 * @param offset 起始位
+	 * @param length 长度
+	 * @param dc 字符反序列
+	 * @return 字符串
+	 */
+	public static String toString(byte[] bytes, int offset, int length, CharsetDecoder dc) {
+		return toString(bytes, offset, length, dc, new StringBuilder(length)).toString();
+	}
+
+	/**
+	 * @param bytes
+	 * @param offset
+	 * @param length
+	 * @param dc
+	 * @param buffer
+	 * @return
+	 */
+	public static <A extends Appendable> A toString(byte[] bytes, int offset, int length, CharsetDecoder dc, A buffer) {
 		int len = bytes == null ? 0 : bytes.length;
 		if (length == 0 || offset >= len) return buffer;
 		if (offset < 0) offset = 0;
 
 		if (buffer == null) buffer = (A) new StringBuilder(length);
-		if (cs == null) cs = Environments.defaultCharset();
-
-		try {
-			return (A) buffer
-					.append(cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
-							.decode(ByteBuffer.wrap(bytes, offset, Math.min(length, len - offset))));
-		} catch (CharacterCodingException e) {
-			throw Converter.P.convert(e, RuntimeException.class);
-		} catch (IOException e) {
-			throw Converter.P.convert(e, RuntimeException.class);
+		if (dc == null) {
+			dc = Environments.defaultCharset().newDecoder();
+			dc = dc.onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
 		}
+		decode(bytes, offset, Math.min(len - offset, length), dc, buffer);
+		return buffer;
 	}
 
 	/**
@@ -1668,9 +1730,9 @@ public final class Stringure {
 		if (str == null) return empty;
 		int start = 0;
 		int end = str.length() - 1;
-		while (start <= end && Character.isWhitespace(str.charAt(start)))
+		while (start <= end && isEmpty(str.charAt(start)))
 			start++;
-		while (end >= start && Character.isWhitespace(str.charAt(end)))
+		while (end >= start && isEmpty(str.charAt(end)))
 			end--;
 		return str.subSequence(start, end + 1).toString();
 	}
@@ -1902,6 +1964,61 @@ public final class Stringure {
 		if (start > len) return null;
 		if (end > len) end = len;
 		return new int[] { start, end };
+	}
+
+	/**
+	 * 执行反解
+	 * @param ba 字节流
+	 * @param off 起始位
+	 * @param len 长度
+	 * @param dc 字符反解
+	 * @param buf 缓存区
+	 */
+	private static <A extends Appendable> void decode(byte[] ba, int off, int len, CharsetDecoder dc, A buf) {
+		try {
+			try {
+				if (decodeArray(ba, off, len, dc, buf)) return;
+			} catch (IOException e) {
+				throw e;
+			} catch (Throwable t) { // ignored;
+			}
+
+			ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+			buf.append(dc.decode(bb));
+		} catch (Throwable t) {
+			throw Converter.F.convert(t, RuntimeException.class);
+		}
+	}
+
+	/**
+	 * Array 式反序列化
+	 * @param ba 字节流
+	 * @param o 起始位
+	 * @param len 长度
+	 * @param dc 字符反解
+	 * @param buf 缓存区
+	 * @return 是否成功
+	 * @throws IOException
+	 */
+	@SuppressWarnings("restriction")
+	private static <A extends Appendable> boolean decodeArray(byte[] ba, int o, int len, CharsetDecoder dc, A buf) throws IOException {
+		if (!(dc instanceof sun.nio.cs.ArrayDecoder)) return false;
+		char[] ca = new char[(int) (len * (double) dc.maxCharsPerByte())];
+		int clen = ((sun.nio.cs.ArrayDecoder) dc).decode(ba, o, len, ca);
+		if (clen > 0) buf.append(new String(ca, 0, clen));
+		return true;
+	}
+
+	/**
+	 * 是否空字符
+	 * @param ch 字符
+	 * @return 是、否
+	 */
+	private static boolean isEmpty(char ch) {
+		if (Character.isWhitespace(ch)) return true;
+		else if (Character.isISOControl(ch)) return true;
+		else if (Character.isIdentifierIgnorable(ch) && Emchar.isEmpty(ch)) return true;
+		return false;
 	}
 
 	/**
