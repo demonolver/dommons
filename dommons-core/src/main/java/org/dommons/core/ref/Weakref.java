@@ -12,6 +12,6 @@ import java.lang.ref.WeakReference;
 public class Weakref<T> extends Absref<T> {
 
 	public Weakref(T referent) {
-		super(new WeakReference<T>(referent));
+		super(new WeakReference(referent));
 	}
 }

@@ -12,6 +12,6 @@ import java.lang.ref.SoftReference;
 public class Softref<T> extends Absref<T> {
 
 	public Softref(T referent) {
-		super(new SoftReference<T>(referent));
+		super(new SoftReference(referent));
 	}
 }

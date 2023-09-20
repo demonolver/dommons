@@ -418,7 +418,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
 		private List<Map.Entry<K, V>> deepCopy() {
 			List<Map.Entry<K, V>> list = new ArrayList<Map.Entry<K, V>>(size());
 			for (Map.Entry<K, V> e : this)
-				list.add(new AbstractMap.SimpleEntry<K, V>(e));
+				list.add(new AbstractMap.SimpleEntry(e));
 			return list;
 		}
 	}
