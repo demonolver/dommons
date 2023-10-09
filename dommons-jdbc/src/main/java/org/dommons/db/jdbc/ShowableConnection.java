@@ -433,7 +433,8 @@ public class ShowableConnection extends EssentialConnection {
 			String connectID = unique(ShowableConnection.this.connectID);
 			ShowableConnection.this.onExecute(sql, se != null ? se : result, millis, select, s, connectID);
 			if (se == null) {
-				int r = Converter.F.convert(result, int.class);
+				int r = resultRows(result);
+				if (r > 0) result = NumberFormat.getIntegerInstance().format(r);
 				ShowableLimit limit = ShowableLimit.get();
 				Object res = result instanceof BatchResult ? result.toString() : result;
 				if (millis.intValue() < limit.time && r < limit.count) {
@@ -445,6 +446,10 @@ public class ShowableConnection extends EssentialConnection {
 				logger.warn(JDBCMessages.m.sql_execute_error(), general.getName(), connectID, s, se.getErrorCode(), se.getSQLState(),
 					se.getMessage(), millis);
 			}
+		}
+
+		int resultRows(Object result) {
+			return (result instanceof Number) ? ((Number) result).intValue() : 0;
 		}
 	}
 

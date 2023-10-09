@@ -6,6 +6,8 @@ package org.dommons.core.convert;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +23,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.dommons.core.Assertor;
 import org.dommons.core.Silewarner;
-import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 import org.dommons.core.env.ResourcesFind;
 import org.dommons.core.util.Arrayard;
 import org.w3c.dom.Document;
@@ -38,7 +39,7 @@ final class ConverterMap {
 	/** 排除类型集 */
 	static final Class[] outers = { Object.class, Serializable.class, Cloneable.class, Comparable.class };
 
-	private static Map<Class, Map<Class, MapNode>> cache = new ConcurrentSoftMap();
+	private static Reference<Map<Class, MapNode>> cache;
 
 	/**
 	 * 获取转换器
@@ -56,11 +57,11 @@ final class ConverterMap {
 	 * @return 映射表
 	 */
 	protected static Map<Class, MapNode> map() {
-		Map<Class, MapNode> map = cache.get(ConverterMap.class);
+		Map<Class, MapNode> map = cache == null ? null : cache.get();
 		if (map == null) {
 			synchronized (ConverterMap.class) {
-				map = cache.get(ConverterMap.class);
-				if (map == null) cache.put(ConverterMap.class, map = load());
+				map = cache == null ? null : cache.get();
+				if (map == null) cache = new SoftReference(map = load());
 			}
 		}
 		return map;

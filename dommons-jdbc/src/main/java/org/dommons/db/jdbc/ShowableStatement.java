@@ -6,7 +6,6 @@ package org.dommons.db.jdbc;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,13 +29,13 @@ class ShowableStatement<C extends ShowableConnection> extends EssentialCallableS
 	 * @param rs 查询结果
 	 * @return 行数 <code>0</code>无结果或ResultSet为<code>null</code>, 未知表示无法获得行数
 	 */
-	protected static String count(ResultSet rs) {
-		String count = Stringure.empty;
+	protected static Object count(ResultSet rs) {
+		Object count = Stringure.empty;
 		try {
 			// 如结果的游标类型不是单向游标，则移动游标获取结果行数
 			if (rs != null && rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
 				rs.last();
-				count = NumberFormat.getIntegerInstance().format(rs.getRow());
+				count = rs.getRow();
 				rs.beforeFirst();
 			} else { // 否则返回未知，表示无法获得行数
 				count = JDBCMessages.m.execute_result_unknow();

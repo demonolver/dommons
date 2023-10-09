@@ -233,19 +233,25 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 
 		static MemCleanThread t;
 		static long limit = TimeUnit.SECONDS.toMillis(15);
+		static Double $javaVersion;
 
 		/**
 		 * 获取清理器实例
 		 * @return 清理器实例
 		 */
 		public static MemCleanThread t() {
-			if (Environments.javaVersion() < 1.7) return null;
+			if (javaVersion() < 1.7) return null;
 			if (t == null) {
 				synchronized (MemCleanThread.class) {
 					if (t == null) new MemCleanThread();
 				}
 			}
 			return t;
+		}
+
+		static double javaVersion() {
+			return $javaVersion != null ? $javaVersion.doubleValue() : ($javaVersion = Environments.javaVersion());
+
 		}
 
 		private final Map<Object, MemcacheMap> cs;
