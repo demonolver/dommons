@@ -78,10 +78,26 @@ public class ConcurrentSoftMap<K, V> extends ConcurrentMapWrapper<K, V> {
 	static class LockSoftMap<K, V> extends SoftHashMap<K, V> {
 
 		private ConcurrentSoftMap parent;
+		private long last;
+
+		protected LockSoftMap() {
+			this.last = System.currentTimeMillis();
+		}
 
 		@Override
 		protected Lock expungeLock() {
 			return parent != null ? parent.expungeLock : null;
+		}
+
+		@Override
+		protected boolean needExpungeStale() {
+			long now = System.currentTimeMillis(), limit = 1000;
+			if (now - last < limit) return false;
+			synchronized (this) {
+				if (now - last < limit) return false;
+				last = now;
+			}
+			return true;
 		}
 
 		void setParent(ConcurrentSoftMap parent) {

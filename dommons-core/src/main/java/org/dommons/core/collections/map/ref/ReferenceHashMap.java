@@ -258,6 +258,14 @@ public abstract class ReferenceHashMap<K, V> extends AbstractMap<K, V> {
 	}
 
 	/**
+	 * 是否检查需抹去的元素
+	 * @return 是、否
+	 */
+	protected boolean needExpungeStale() {
+		return true;
+	}
+
+	/**
 	 * 获取元素项
 	 * @param key 键值
 	 * @return 元素项
@@ -328,6 +336,7 @@ public abstract class ReferenceHashMap<K, V> extends AbstractMap<K, V> {
 	 * 抹去已释放元素集
 	 */
 	private void expungeStaleEntries() {
+		if (!needExpungeStale()) return;
 		for (ReferenceElement<K, V> e; (e = (ReferenceElement<K, V>) queue.poll()) != null;) {
 			Lock lock = expungeLock();
 			if (lock != null) lock.lock();
