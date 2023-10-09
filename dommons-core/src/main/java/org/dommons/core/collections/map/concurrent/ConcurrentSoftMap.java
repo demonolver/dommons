@@ -19,21 +19,19 @@ public class ConcurrentSoftMap<K, V> extends ConcurrentMapWrapper<K, V> {
 
 	private final ThreadLocal<Lock> local;
 	private final Lock expungeLock;
+	private final Lock readLock;
 
 	public ConcurrentSoftMap() {
 		super(new LockSoftMap());
 		this.local = new ThreadLocal();
-		((LockSoftMap) tar()).setParent(this);
 		this.expungeLock = new ExpungeLock();
-	}
-
-	protected Lock expungeLock() {
-		return this.expungeLock;
+		this.readLock = new ProxyReadLock(lock.readLock());
+		((LockSoftMap) tar()).setParent(this);
 	}
 
 	@Override
 	protected Lock readLock() {
-		return new ProxyReadLock(lock.readLock());
+		return this.readLock;
 	}
 
 	class ExpungeLock implements Lock {
@@ -44,7 +42,6 @@ public class ConcurrentSoftMap<K, V> extends ConcurrentMapWrapper<K, V> {
 			if (read != null) {
 				read.unlock();
 				writeLock().lock();
-				System.out.println("ex lock");
 			}
 		}
 
@@ -84,7 +81,7 @@ public class ConcurrentSoftMap<K, V> extends ConcurrentMapWrapper<K, V> {
 
 		@Override
 		protected Lock expungeLock() {
-			return parent != null ? parent.expungeLock() : null;
+			return parent != null ? parent.expungeLock : null;
 		}
 
 		void setParent(ConcurrentSoftMap parent) {
