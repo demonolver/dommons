@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 import org.dommons.core.util.Arrayard;
 
@@ -239,6 +240,14 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
 	}
 
 	/**
+	 * 获取释放元素抹去锁
+	 * @return 并发锁
+	 */
+	protected Lock expungeLock() {
+		return null;
+	}
+
+	/**
 	 * 获取元素项
 	 * @param key 键值
 	 * @return 元素项
@@ -309,24 +318,29 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
 	 * 抹去已释放元素集
 	 */
 	private void expungeStaleEntries() {
-		SoftElement<K, V> e;
-		while ((e = (SoftElement<K, V>) queue.poll()) != null) {
-			int h = e.hash;
-			int i = indexFor(h, table.length);
+		for (SoftElement<K, V> e; (e = (SoftElement<K, V>) queue.poll()) != null;) {
+			Lock lock = expungeLock();
+			if (lock != null) lock.lock();
+			try {
+				int h = e.hash;
+				int i = indexFor(h, table.length);
 
-			SoftEntry<K, V> prev = table[i];
-			SoftEntry<K, V> p = prev;
-			while (p != null) {
-				SoftEntry<K, V> next = p.next;
-				if (p.match(e) || p.isEvicted()) {
-					if (prev == p) table[i] = next;
-					else prev.next = next;
-					p.next = null; // Help GC
-					size--;
-					break;
+				SoftEntry<K, V> prev = table[i];
+				SoftEntry<K, V> p = prev;
+				while (p != null) {
+					SoftEntry<K, V> next = p.next;
+					if (p.match(e) || p.isEvicted()) {
+						if (prev == p) table[i] = next;
+						else prev.next = next;
+						p.next = null; // Help GC
+						size--;
+						break;
+					}
+					prev = p;
+					p = next;
 				}
-				prev = p;
-				p = next;
+			} finally {
+				if (lock != null) lock.unlock();
 			}
 		}
 	}

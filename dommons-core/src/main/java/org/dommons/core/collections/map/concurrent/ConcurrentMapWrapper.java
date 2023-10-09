@@ -33,7 +33,7 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 
 	public ConcurrentMapWrapper(Map<K, V> map) {
 		super(map);
-		this.lock = new ReentrantReadWriteLock();
+		this.lock = readWriteLock();
 	}
 
 	public void clear() {
@@ -247,6 +247,10 @@ public class ConcurrentMapWrapper<K, V> extends AbsMapWrapper<K, V> implements C
 	protected void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
 		super.readObject(s);
 		lock = (ReadWriteLock) s.readObject();
+	}
+
+	protected ReadWriteLock readWriteLock() {
+		return new ReentrantReadWriteLock();
 	}
 
 	/**
