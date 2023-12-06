@@ -244,13 +244,14 @@ public class HttpConnector {
 	 * @throws IOException
 	 */
 	public static void post(HttpURLConnection conn, String type, byte[] content, boolean gzip) throws IOException {
-		if (conn == null || content == null || content.length < 1) return;
+		if (conn == null) return;
+		if (content == null) content = new byte[0];
 		conn.setDoOutput(true);
 		if (gzip) {
 			conn.setRequestProperty("Accept-Encoding", "compress,gzip");
 			if ((gzip = content.length > Zipper.gzip_min_size)) conn.setRequestProperty("Content-Encoding", "gzip");
 		} else {
-			conn.setRequestProperty("Accept-Encoding", "compress");
+			if (conn.getRequestProperty("Accept-Encoding") == null) conn.setRequestProperty("Accept-Encoding", "compress");
 		}
 		conn.setRequestProperty("Content-Type", type);
 
@@ -266,6 +267,7 @@ public class HttpConnector {
 				os.write(bs, i, Math.min(p, len - i));
 				os.flush();
 			}
+			os.flush();
 		} finally {
 			if (os != null) os.close();
 		}
