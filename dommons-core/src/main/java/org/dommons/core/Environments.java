@@ -59,21 +59,30 @@ public final class Environments {
 					if (language != null) {
 						try {
 							Locale l = Locale.forLanguageTag(language);
-							if (l != null) return l;
+							if (l != null && !l.getLanguage().isEmpty()) return l;
+						} catch (Throwable t) { // ignored
+						}
+						try {
+							Locale l = Locale.forLanguageTag(language.replace('_', '-'));
+							if (l != null && !l.getLanguage().isEmpty()) return l;
 						} catch (Throwable t) { // ignored
 						}
 
 						String lang = Stringure.trim(language).replace('-', '_');
 						Locale[] ls = Locale.getAvailableLocales();
 						for (Locale l : ls) {
-							if (Stringure.equalsIgnoreCase(lang, l.getCountry())
-									|| Stringure.equalsIgnoreCase(lang, Stringure.join('_', l.getCountry(), l.getLanguage()))) {
+							if (Stringure.equalsIgnoreCase(lang, l.getLanguage())
+									|| Stringure.equalsIgnoreCase(lang, Stringure.join('_', l.getLanguage(), l.getCountry()))) {
 								return l;
 							}
 						}
-						return (Locale) Locale.class.getField(language.toUpperCase()).get(null);
+						try {
+							return (Locale) Locale.class.getField(language.toUpperCase()).get(null);
+						} catch (NoSuchFieldException e) { // ignored
+						}
 					}
 				} catch (Throwable e) {
+					cache.put(key, Locale.getDefault());
 					Silewarner.warn(Environments.class, "Find default locale [" + language + "] fail", e);
 				}
 				return Locale.getDefault();

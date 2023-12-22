@@ -130,7 +130,7 @@ public class NLSLocal {
 			if (l == null) l = Locale.forLanguageTag(lang.replace('_', '-'));
 		} catch (Throwable t) { // ignored
 		}
-		return l == null ? null : new Locale(l.getLanguage(), l.getCountry(), l.getVariant());
+		return l == null || Stringure.isEmpty(l.getLanguage()) ? null : new Locale(l.getLanguage(), l.getCountry(), l.getVariant());
 	}
 
 	/**
