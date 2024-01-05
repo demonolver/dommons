@@ -22,6 +22,7 @@ import javax.management.NotificationListener;
 
 import org.dommons.core.Environments;
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
+import org.dommons.core.collections.map.concurrent.ConcurrentWeakMap;
 import org.dommons.core.util.Arrayard;
 import org.dommons.core.util.Randoms;
 
@@ -37,6 +38,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	private final long timeout;
 	private final long max;
 	private final Object k;
+	private final AtomicLong line;
 
 	public MemcacheMap() {
 		this(5000L, Long.MAX_VALUE);
@@ -55,6 +57,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		this.timeout = (timeout <= 0L ? 5000L : timeout);
 		this.max = (max < this.timeout ? this.timeout : max);
 		this.k = new Object();
+		this.line = new AtomicLong(0);
 	}
 
 	public void clear() {
@@ -110,7 +113,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	 */
 	protected V value(CacheItem item, boolean b, Object key) {
 		try {
-			if (!WeakHashMap.class.isInstance(map)) MemClean.add(this.k, this);
+			if (needClean()) MemClean.add(this.k, this);
 		} catch (Throwable t) {
 		}
 		if (item != null && (!b || item.active())) {
@@ -150,6 +153,15 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 				return map.remove(key);
 			}
 		}
+	}
+
+	private boolean needClean() {
+		long now = System.currentTimeMillis(), last = line.get();
+		if (now - last < 5000) return false;
+		else if (!line.compareAndSet(last, now)) return false;
+		if (WeakHashMap.class.isInstance(map)) return false;
+		else if (ConcurrentWeakMap.class.isInstance(map)) return false;
+		return true;
 	}
 
 	private void writeObject(java.io.ObjectOutputStream s) throws IOException {
@@ -304,7 +316,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 					if (thread != null && act) {
 						synchronized (this) {
 							time.set(System.currentTimeMillis());
-							Environments.wait(this);
+							Environments.wait(this, 600000l);
 						}
 					}
 				}
