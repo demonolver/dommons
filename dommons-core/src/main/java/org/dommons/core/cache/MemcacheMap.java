@@ -75,9 +75,75 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 		else return value($put(key, new CacheItem(value)));
 	}
 
+	public V putIfAbsent(K key, V value) {
+		if (key == null || value == null) return get(key);
+		if (map instanceof ConcurrentMap) {
+			CacheItem oi = null, ci = new CacheItem(value);
+			ConcurrentMap<K, CacheItem> cm = (ConcurrentMap) map;
+			oi = cm.putIfAbsent(key, ci);
+			V old = value(oi, true, null);
+			if (oi != null && old == null) cm.replace(key, oi, ci);;
+			return old;
+		} else {
+			synchronized (k) {
+				V old = this.get(key);
+				if (old == null) this.put(key, value);
+				return old;
+			}
+		}
+	}
+
 	public V remove(Object key) {
 		if (key == null) return null;
 		return value($remove(key));
+	}
+
+	public boolean remove(Object key, Object value) {
+		if (key == null) return false;
+		if (map instanceof ConcurrentMap) {
+			ConcurrentMap<K, CacheItem> cm = (ConcurrentMap) map;
+			CacheItem oi = cm.get(key);
+			V old = value(oi);
+			if (Arrayard.equals(value, old) || (value == null && !oi.active())) return oi != null && cm.remove(key, oi);
+			return false;
+		} else {
+			synchronized (k) {
+				V old = get(key);
+				return old != null && Arrayard.equals(old, value) && remove(key) != null;
+			}
+		}
+	}
+
+	public V replace(K key, V value) {
+		if (key == null) return null;
+		if (map instanceof ConcurrentMap) {
+			if (value == null) return remove(key);
+			ConcurrentMap<K, CacheItem> cm = (ConcurrentMap) map;
+			return value(cm.replace(key, new CacheItem(value)));
+		} else {
+			synchronized (k) {
+				if (map.containsKey(key)) return put(key, value);
+			}
+		}
+		return null;
+	}
+
+	public boolean replace(K key, V oldValue, V newValue) {
+		if (key == null || oldValue == null) return false;
+		if (map instanceof ConcurrentMap) {
+			ConcurrentMap<K, CacheItem> cm = (ConcurrentMap) map;
+			CacheItem oi = cm.get(key);
+			V old = value(oi);
+			if (!Arrayard.equals(old, oldValue)) return false;
+			return newValue == null ? cm.remove(key, oi) : cm.replace(key, oi, new CacheItem(newValue));
+		} else {
+			synchronized (k) {
+				V old = get(key);
+				if (!Arrayard.equals(old, oldValue)) return false;
+				put(key, newValue);
+				return true;
+			}
+		}
 	}
 
 	/**
@@ -109,6 +175,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 	 * 提取缓存值
 	 * @param item 缓存项
 	 * @param b 是否检查过期
+	 * @param key 键值
 	 * @return 缓存值
 	 */
 	protected V value(CacheItem item, boolean b, Object key) {
