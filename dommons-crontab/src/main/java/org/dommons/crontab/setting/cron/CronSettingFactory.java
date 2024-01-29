@@ -86,8 +86,8 @@ class CronSettingFactory extends CronsetFactory {
 			if (n >= min && n < max) end = n;
 		}
 
-		if (end <= start) return inner(set, start, end + max, step, max);
-		else return inner(set, start, end + 1, step, max);
+		if (end < start) return inner(set, start, end + max + 1, step, min, max);
+		else return inner(set, start, end + 1, step, min, max);
 	}
 
 	/**
@@ -100,9 +100,25 @@ class CronSettingFactory extends CronsetFactory {
 	 * @return 是否成功
 	 */
 	private static boolean inner(Collection<Integer> list, int s, int e, int l, int z) {
+		return inner(list, s, e, l, 0, z);
+	}
+
+	/**
+	 * 导入值集
+	 * @param list 值集
+	 * @param s 开始
+	 * @param e 截止
+	 * @param l 步长
+	 * @param a 区间起始
+	 * @param z 区间
+	 * @return 是否成功
+	 */
+	private static boolean inner(Collection<Integer> list, int s, int e, int l, int a, int z) {
 		if (list == null) return false;
 		for (int i = s; i < e; i += l) {
-			if (!list.add(Integer.valueOf(i >= z ? i - z : i))) return false;
+			int x = i < z ? i : i % z;
+			if (x < a) continue;
+			if (!list.add(Integer.valueOf(x))) return false;
 		}
 		return true;
 	}
