@@ -20,7 +20,6 @@ class ExpressionSetting extends CronSetting {
 
 	protected static final int NO_SPEC = 98; // '?'
 
-	protected transient TreeSet<Integer> seconds;
 	protected transient TreeSet<Integer> years;
 
 	protected transient boolean lastdayOfWeek;
@@ -67,9 +66,9 @@ class ExpressionSetting extends CronSetting {
 	protected boolean nextDay(Calendar cal, int[] v, long last) {
 		v[3] = cal.get(Calendar.DAY_OF_MONTH);
 		boolean dayOfMSpec = !daysOfMonth.contains(NO_SPEC), dayOfWSpec = !daysOfWeek.contains(NO_SPEC);
-		if (dayOfMSpec && (!dayOfWSpec || allDaysOfWeek())) { // 按月查找日期
+		if (dayOfMSpec && !dayOfWSpec) { // 按月查找日期
 			if (!nextDayOfMonth(cal, v, last)) return false;
-		} else if (dayOfWSpec && (!dayOfMSpec || allDaysOfMonth())) { // 按周查找日期
+		} else if (dayOfWSpec && !dayOfMSpec) { // 按周查找日期
 			if (!nextDayOfWeek(cal, v)) return false;
 		} else { // 不支持同时指定月-日和周-日
 			throw new UnsupportedOperationException(
@@ -185,9 +184,6 @@ class ExpressionSetting extends CronSetting {
 	protected void reset() {
 		super.reset();
 
-		if (seconds == null) seconds = new TreeSet();
-		else seconds.clear();
-
 		if (years == null) years = new TreeSet();
 		else years.clear();
 
@@ -241,23 +237,6 @@ class ExpressionSetting extends CronSetting {
 		else if (dow == Calendar.SUNDAY) v[3] += 1;
 
 		return setter(tcal, Calendar.DAY_OF_MONTH, v[3]).getTimeInMillis();
-	}
-
-	/**
-	 * 是否月中所有天
-	 * @return 是、否
-	 */
-	private boolean allDaysOfMonth() {
-		return daysOfMonth.size() >= 31;
-	}
-
-	/**
-	 * 是否周中所有天
-	 * @return 是、否
-	 */
-	private boolean allDaysOfWeek() {
-		if (daysOfWeek.size() < 7) return false;
-		return !lastdayOfWeek && nthdayOfWeek == 0;
 	}
 
 	private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {

@@ -72,6 +72,7 @@ abstract class CronSetting implements Cronset {
 		return cal;
 	}
 
+	protected transient TreeSet<Integer> seconds;
 	protected transient TreeSet<Integer> minutes;
 	protected transient TreeSet<Integer> hours;
 	protected transient TreeSet<Integer> daysOfMonth;
@@ -162,6 +163,9 @@ abstract class CronSetting implements Cronset {
 	 * 重置时间设定
 	 */
 	protected void reset() {
+		if (seconds == null) seconds = new TreeSet();
+		else seconds.clear();
+
 		if (minutes == null) minutes = new TreeSet();
 		else minutes.clear();
 

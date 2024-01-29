@@ -126,8 +126,8 @@ class CronSettingFactory extends CronsetFactory {
 	 */
 	static class CrontabParser extends SettingParser {
 
-		protected static final int[] fields = { Calendar.MINUTE, Calendar.HOUR_OF_DAY, Calendar.DAY_OF_MONTH, Calendar.MONTH,
-				Calendar.DAY_OF_WEEK };
+		protected static final int[] fields = { -1, Calendar.SECOND, Calendar.MINUTE, Calendar.HOUR_OF_DAY, Calendar.DAY_OF_MONTH,
+				Calendar.MONTH, Calendar.DAY_OF_WEEK };
 
 		/**
 		 * 解析表达式
@@ -137,9 +137,12 @@ class CronSettingFactory extends CronsetFactory {
 		protected static boolean build(CrontabSetting cs, Matcher m) {
 			cs.reset();
 
-			for (int i = 0; i < fields.length; i++) {
+			for (int i = 0, tc = fields.length; i < tc; i++) {
 				String expr = Stringure.trim(m.group(i + 1)).toUpperCase();
 				switch (fields[i]) {
+				case Calendar.SECOND:
+					if (!expr.isEmpty() && !numericSet(cs.seconds, expr, 0, 60)) return false;
+					break;
 				case Calendar.MINUTE:
 					if (!numericSet(cs.minutes, expr, 0, 60)) return false;
 					break;
@@ -154,6 +157,8 @@ class CronSettingFactory extends CronsetFactory {
 					break;
 				case Calendar.DAY_OF_WEEK:
 					if (!numericSet(cs.daysOfWeek, expr, 0, 7)) return false;
+					break;
+				case -1:
 					break;
 				default:
 					return false;
@@ -178,8 +183,8 @@ class CronSettingFactory extends CronsetFactory {
 		 */
 		protected static Pattern pattern() {
 			// http://blog.csdn.net/sipsir/article/details/3973713
-			return CronSettingFactory.pattern("([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)"
-					+ "\\s+([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)");
+			return CronSettingFactory.pattern("(([0-9\\*\\-\\/\\,]+)\\s+)?"
+					+ "([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)\\s+([0-9\\*\\-\\/\\,]+)");
 		}
 
 		public CrontabParser() {
@@ -188,7 +193,7 @@ class CronSettingFactory extends CronsetFactory {
 
 		public Cronset parse(String content) {
 			Matcher m = pattern().matcher(content);
-			if (!m.matches()) return null;
+			if (!m.matches() || content.contains("?")) return null;
 			CrontabSetting cs = new CrontabSetting(content);
 			return build(cs, m) ? cs : null;
 		}
@@ -381,7 +386,7 @@ class CronSettingFactory extends CronsetFactory {
 
 		public Cronset parse(String content) {
 			Matcher m = pattern().matcher(content);
-			if (!m.matches()) return null;
+			if (!m.matches() || !content.contains("?")) return null;
 			ExpressionSetting es = new ExpressionSetting(content);
 			return build(es, m) ? es : null;
 		}
