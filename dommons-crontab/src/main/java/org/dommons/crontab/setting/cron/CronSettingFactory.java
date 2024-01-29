@@ -357,7 +357,7 @@ class CronSettingFactory extends CronsetFactory {
 				int p = 0, len = cx.length();
 				StringBuffer buf = new StringBuffer(len);
 				do {
-					String v = m.group(1);
+					String v = m.group();
 					int n = numeric(v, map);
 
 					int s = m.start(), e = m.end();
@@ -369,6 +369,7 @@ class CronSettingFactory extends CronsetFactory {
 					}
 					p = e;
 				} while (m.find());
+				if (p < cx.length()) buf.append(cx, p, cx.length());
 				cx = buf.toString();
 			}
 			return cx;
