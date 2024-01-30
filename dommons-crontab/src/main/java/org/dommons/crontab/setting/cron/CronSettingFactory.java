@@ -315,7 +315,7 @@ class CronSettingFactory extends CronsetFactory {
 		 * @return 是否合法
 		 */
 		static boolean dayWeekSet(ExpressionSetting es, String cx) {
-			cx = replaceNumeric(cx, days, 0);
+			cx = replaceNumeric(cx, days, -1);
 			if (cx == null) return false;
 			if ("?".equals(cx)) return es.daysOfWeek.add(Integer.valueOf(ExpressionSetting.NO_SPEC));
 			if (cx.endsWith("L")) {
@@ -328,7 +328,7 @@ class CronSettingFactory extends CronsetFactory {
 					es.nthdayOfWeek = Integer.parseInt(m.group(2));
 				}
 			}
-			return numericSet(es.daysOfWeek, cx, 1, 8);
+			return numericSet(es.daysOfWeek, cx, 0, 7);
 		}
 
 		/**
@@ -348,9 +348,9 @@ class CronSettingFactory extends CronsetFactory {
 		 * @return 正则
 		 */
 		static Pattern pattern() {
-			// http://just4java.iteye.com/blog/582119
+			// https://blog.csdn.net/Mr_EvanChen/article/details/100107599
 			return CronSettingFactory.pattern("([0-9\\*\\,\\-\\/]+)\\s+([0-9\\*\\,\\-\\/]+)\\s+([0-9\\*\\,\\-\\/]+)"
-					+ "\\s+([0-9\\*\\,\\-\\/\\?LW]+)\\s+([0-9a-z\\*\\,\\-\\/]+)\\s+([1-7a-z\\*\\,\\-\\/\\?#]+)(\\s+([0-9\\*\\,\\-\\/]+))?",
+					+ "\\s+([0-9\\*\\,\\-\\/\\?LW]+)\\s+([0-9a-z\\*\\,\\-\\/]+)\\s+([0-7a-z\\*\\,\\-\\/\\?#]+)(\\s+([0-9\\*\\,\\-\\/]+))?",
 				Pattern.CASE_INSENSITIVE);
 		}
 

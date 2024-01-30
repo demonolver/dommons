@@ -51,6 +51,8 @@ public abstract class CronsetFactory {
 
 	/**
 	 * 解析表达式
+	 * <br>&emsp;支持 UNIX Cron 表达式
+	 * <br>&emsp;支持 Spring Scheduled Cron 表达式 
 	 * @param expression 表达式
 	 * @return 时间设置
 	 */

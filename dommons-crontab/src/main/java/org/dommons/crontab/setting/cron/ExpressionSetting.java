@@ -200,7 +200,7 @@ class ExpressionSetting extends CronSetting {
 	 * @return 后移天数
 	 */
 	int dayOfWeek(Calendar cal) {
-		int dow = daysOfWeek.first(), cDow = cal.get(Calendar.DAY_OF_WEEK);
+		int dow = daysOfWeek.first(), cDow = cal.get(Calendar.DAY_OF_WEEK) - 1;
 		SortedSet<Integer> st = daysOfWeek.tailSet(cDow);
 		if (st != null && !st.isEmpty()) dow = st.first();
 
