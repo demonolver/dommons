@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import org.dommons.core.collections.map.concurrent.ConcurrentSoftMap;
 import org.dommons.core.convert.Converter;
+import org.dommons.core.proxy.ProxyFactory;
 import org.dommons.core.ref.Ref;
 import org.dommons.core.ref.Softref;
 import org.dommons.core.string.Stringure;
@@ -21,6 +22,7 @@ import org.dommons.core.string.Stringure;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.PropertyNamingStrategyBase;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -47,6 +49,7 @@ public class Jacksondata {
 		mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 		mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 		mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+		configureModules(mapper);
 		if (underscore) mapper.setPropertyNamingStrategy(strategy());
 	}
 
@@ -295,6 +298,20 @@ public class Jacksondata {
 			pref = new Softref(pns);
 		}
 		return pns;
+	}
+
+	/**
+	 * 设置数据模型
+	 * @param mapper 转换器实例
+	 */
+	static void configureModules(ObjectMapper mapper) {
+		try {
+			Class clazz = ProxyFactory.findClass("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule");
+			if (clazz == null) return;
+			Module module = (Module) clazz.newInstance();
+			mapper.registerModule(module);
+		} catch (Throwable t) { // ignored
+		}
 	}
 
 }
