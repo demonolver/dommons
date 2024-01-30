@@ -54,20 +54,35 @@ class CronSettingFactory extends CronsetFactory {
 	 * @return 是否合法
 	 */
 	static boolean numericSet(TreeSet<Integer> set, String s, int min, int max) {
-		if ("*".equals(s)) return inner(set, min, max, 1, max);
+		return numericSet(set, s, min, max, max);
+	}
 
-		if (pattern("[0-9]+(\\,[0-9]+)*").matcher(s).matches()) { // 枚举值集
-			for (String p : Stringure.split(s, ',')) {
-				int n = Integer.parseInt(p);
-				if (n >= max) n = (n + min) % max + min;
-				if (n >= min) set.add(n);
-			}
+	/**
+	 * 解析数值设定
+	 * @param set 值集
+	 * @param s 设定内容
+	 * @param min 最小值
+	 * @param max 最大值
+	 * @param ed 截止值
+	 * @return 是否合法
+	 */
+	static boolean numericSet(TreeSet<Integer> set, String s, int min, int max, int ed) {
+		if ("*".equals(s)) return inner(set, min, ed, 1, max);
+
+		if (s.contains(",")) { // 多段值集
+			for (String p : Stringure.split(s, ','))
+				numericSet(set, p, min, max, ed);
+			return true;
+		} else if (pattern("[0-9]+").matcher(s).matches()) { // 单项值
+			int n = Integer.parseInt(s);
+			if (n >= max) n = (n + min) % max + min;
+			if (n >= min) set.add(n);
 			return true;
 		}
 
 		Matcher m = pattern("((([0-9]+)(\\-([0-9]+))?)|\\*)(\\/([1-9][0-9]*))?").matcher(s); // 区间值
 		if (!m.matches()) return false;
-		int start = min, end = max - 1, step = 1;
+		int start = min, end = ed - 1, step = 1;
 		String tx = m.group(7);
 		if (tx != null) {
 			int n = Integer.parseInt(tx);
@@ -172,7 +187,7 @@ class CronSettingFactory extends CronsetFactory {
 					if (!numericSet(cs.months, expr, 0, 12)) return false;
 					break;
 				case Calendar.DAY_OF_WEEK:
-					if (!numericSet(cs.daysOfWeek, expr, 0, 7)) return false;
+					if (!numericSet(cs.daysOfWeek, expr, 0, 7, 8)) return false;
 					break;
 				case -1:
 					break;
@@ -328,7 +343,7 @@ class CronSettingFactory extends CronsetFactory {
 					es.nthdayOfWeek = Integer.parseInt(m.group(2));
 				}
 			}
-			return numericSet(es.daysOfWeek, cx, 0, 7);
+			return numericSet(es.daysOfWeek, cx, 0, 7, 8);
 		}
 
 		/**
