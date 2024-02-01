@@ -133,7 +133,7 @@ class CronSettingFactory extends CronsetFactory {
 		for (int i = s; i < e; i += l) {
 			int x = i < z ? i : i % z;
 			if (x < a) continue;
-			if (!list.add(Integer.valueOf(x))) break;
+			list.add(Integer.valueOf(x));
 		}
 		return true;
 	}
