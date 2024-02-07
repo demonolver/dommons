@@ -153,9 +153,8 @@ abstract class CronSetting implements Cronset {
 			v[index] = months.first();
 			cal.add(Calendar.YEAR, 1);
 		}
-		if (v[index] != t) return setter(cal, -1, v[index] - 1, 1, 0, 0, 0) == null;
-
 		cal.set(Calendar.MONTH, v[index] - 1);
+		if (v[index] != t) return setter(cal, -1, -1, 1, 0, 0, 0) == null;
 		return true;
 	}
 

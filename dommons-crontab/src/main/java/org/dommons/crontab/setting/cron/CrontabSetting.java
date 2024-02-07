@@ -72,8 +72,8 @@ class CrontabSetting extends CronSetting {
 			v[3] = daysOfMonth.first();
 			cal.add(Calendar.MONTH, 1);
 		}
-		if (v[3] != t) return setter(cal, -1, -1, -1, v[3], 0, 0) == null;
 		cal.set(Calendar.DAY_OF_MONTH, v[3]);
+		if (v[3] != t) return setter(cal, -1, -1, -1, 0, 0, 0) == null;
 		return true;
 	}
 

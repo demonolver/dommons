@@ -1143,6 +1143,17 @@ public final class Stringure {
 
 	/**
 	 * 分割字符串
+	 * @param cs 字符集
+	 * @param ch 分割字符
+	 * @param skipEmpty 是否忽略空字符串
+	 * @return 子字符串集
+	 */
+	public static String[] split(CharSequence str, char ch, boolean skipEmpty) {
+		return split(str, ch, 0, skipEmpty);
+	}
+
+	/**
+	 * 分割字符串
 	 * <table border='0px'>
 	 * <tr>
 	 * <th id='i' width='20'/>
@@ -1211,6 +1222,17 @@ public final class Stringure {
 	 */
 	public static String[] split(CharSequence cs, CharSequence pattern) {
 		return split(cs, pattern, 0);
+	}
+
+	/**
+	 * 分割字符串
+	 * @param cs 字符集
+	 * @param pattern 分割表达式
+	 * @param skipEmpty 是否忽略空字符串
+	 * @return 子字符串集
+	 */
+	public static String[] split(CharSequence cs, CharSequence pattern, boolean skipEmpty) {
+		return split(cs, pattern, 0, skipEmpty);
 	}
 
 	/**

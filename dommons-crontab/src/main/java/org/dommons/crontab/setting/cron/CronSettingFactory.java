@@ -184,7 +184,7 @@ class CronSettingFactory extends CronsetFactory {
 					if (!numericSet(cs.daysOfMonth, expr, 1, 32)) return false;
 					break;
 				case Calendar.MONTH:
-					if (!numericSet(cs.months, expr, 0, 12)) return false;
+					if (!numericSet(cs.months, expr, 1, 13)) return false;
 					break;
 				case Calendar.DAY_OF_WEEK:
 					if (!numericSet(cs.daysOfWeek, expr, 0, 7, 8)) return false;
