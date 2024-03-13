@@ -342,6 +342,7 @@ public final class Arrayard {
 			} else if (array.getClass().isArray()) {
 				v = (T) Array.get(array, index);
 			} else {
+				if (array instanceof Map) array = ((Map) array).entrySet();
 				Iterator it = ((Collection) array).iterator();
 				for (int i = 0; i < index && it.hasNext(); i++)
 					it.next();
