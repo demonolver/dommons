@@ -214,12 +214,13 @@ public class URLCoder implements Coder {
 		if (buf == null) buf = new StringBuilder(32);
 		if (query != null) {
 			int[] x = { 0 };
+			Object[] none = { null };
 			for (Entry<String, ?> en : query.entrySet()) {
 				String key = Stringure.trim(en.getKey());
 				if (Stringure.isEmpty(key)) continue;
 				Object v = en.getValue();
-				if (v == null) continue;
-				if (v instanceof Collection) inner(buf, key, x, ((Collection) v).toArray());
+				if (v == null) inner(buf, key, x, none);
+				else if (v instanceof Collection) inner(buf, key, x, ((Collection) v).toArray());
 				else if (v.getClass().isArray()) inner(buf, key, x, Arrayard.asArray(v));
 				else inner(buf, key, x, v);
 			}
@@ -322,10 +323,10 @@ public class URLCoder implements Coder {
 	protected void inner(StringBuilder buf, String k, int[] x, Object... vs) {
 		for (Object v : vs) {
 			String sv = Converter.F.convert(v, String.class);
-			if (sv == null) continue;
 			if (x[0]++ > 0) buf.append('&');
 			else if (buf.length() > 0) buf.append('?');
-			buf.append(encode(k)).append('=').append(encode(Stringure.trim(sv)));
+			buf.append(encode(k));
+			if (sv != null) buf.append('=').append(encode(Stringure.trim(sv)));
 		}
 	}
 
