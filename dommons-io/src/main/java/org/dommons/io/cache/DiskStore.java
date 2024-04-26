@@ -49,12 +49,19 @@ class DiskStore extends DiskLock {
 	 * @param key 缓存键值
 	 */
 	public void remove(String key) {
-		DiskFile df = getWriteFile();
-		try {
-			if (key == null) df.truncate();
-			df.remove(key(key));
-		} finally {
-			if (df != null) df.close();
+		for (int i = 0; i < 2; i++) {
+			DiskFile df = getWriteFile();
+			remove: try {
+				if (key == null) {
+					if (!df.truncate()) break remove;
+				} else {
+					if (!df.remove(key(key))) break remove;
+				}
+				return;
+			} finally {
+				if (df != null) df.close();
+			}
+			reset(file);
 		}
 	}
 
@@ -64,11 +71,14 @@ class DiskStore extends DiskLock {
 	 * @param value 内容值
 	 */
 	public void write(String key, String value) {
-		DiskFile df = getWriteFile();
-		try {
-			df.write(key(key), value);
-		} finally {
-			if (df != null) df.close();
+		for (int i = 0; i < 2; i++) {
+			DiskFile df = getWriteFile();
+			try {
+				if (df.write(key(key), value)) return;
+			} finally {
+				if (df != null) df.close();
+			}
+			reset(file);
 		}
 	}
 
@@ -107,6 +117,15 @@ class DiskStore extends DiskLock {
 	 */
 	DiskFile getWriteFile() {
 		return new DiskFile(file, rw.writeLock(), m_rw, key);
+	}
+
+	/**
+	 * 重置文件
+	 * @param file 文件
+	 */
+	void reset(File file) {
+		file.delete();
+		init(file);
 	}
 
 	/**

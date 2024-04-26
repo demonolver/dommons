@@ -29,27 +29,28 @@ class DiskBinder {
 	 * @param file 文件
 	 * @throws IOException
 	 */
-	public static void bind(RandomAccessFile file) throws IOException {
+	public static boolean bind(RandomAccessFile file) throws IOException {
 		byte[] x = HexCoder.decodeBuffer(UniQueness.generateHexUUID());
 		byte[] bs = new byte[ems.length], old = null;
-		long stat = System.currentTimeMillis();
-		for (;;) {
+		long stat = System.currentTimeMillis(), s = stat;
+		for (; System.currentTimeMillis() - s < 6000;) {
 			file.seek(16);
 			file.read(bs);
 			if (Arrayard.equals(bs, x)) {
-				return;
+				return true;
 			} else if (!Arrayard.equals(bs, ems)) dead: {
 				if (!Arrayard.equals(old, bs)) {
 					old = bs;
 					stat = System.currentTimeMillis();
 				} else {
-					if (System.currentTimeMillis() - stat > 3000) break dead;
+					if (System.currentTimeMillis() - stat >= 1000) break dead;
 				}
-				Environments.sleep(500);
+				Environments.sleep(200);
 			}
 			file.seek(16);
 			file.write(x);
 		}
+		return false;
 	}
 
 	/**
@@ -61,6 +62,15 @@ class DiskBinder {
 			file.seek(16);
 			file.write(ems);
 		} catch (IOException e) { // ignored
+		}
+	}
+
+	static class FileFullIOException extends IOException {
+
+		private static final long serialVersionUID = -6235915234109695599L;
+
+		public FileFullIOException() {
+			super();
 		}
 	}
 }

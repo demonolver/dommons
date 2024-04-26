@@ -16,6 +16,7 @@ import org.dommons.core.convert.Converter;
 import org.dommons.core.number.Radix64;
 import org.dommons.core.string.Stringure;
 import org.dommons.core.util.Arrayard;
+import org.dommons.io.cache.DiskBinder.FileFullIOException;
 import org.dommons.io.file.Zipper;
 import org.dommons.security.coder.HexCoder;
 
@@ -41,16 +42,19 @@ class DiskFile implements Closeable {
 	private final RandomAccessFile file;
 	private final byte[] key;
 
+	private volatile boolean binded;
+
 	public DiskFile(File file, Lock lock, String mode, byte[] key) {
 		this.file = file(file, mode);
 		this.key = key;
 		this.lock = lock;
 		this.lock.lock();
+		this.binded = false;
 	}
 
 	public void close() {
 		try {
-			DiskBinder.unbind(file);
+			if (binded) DiskBinder.unbind(file);
 			file.close();
 		} catch (IOException e) {
 			Silewarner.error(DiskFile.class, e);
@@ -80,37 +84,45 @@ class DiskFile implements Closeable {
 	 * 移除内容
 	 * @param key 键值
 	 */
-	public void remove(byte[] key) {
+	public boolean remove(byte[] key) {
 		r: try {
 			if (!bind(true)) break r;
 			key = key(key);
 			DiskPosition pos = position(key);
 			if (pos != null) empty(pos);
-			return;
+			return true;
+		} catch (FileFullIOException e) {
+			return false;
 		} catch (IOException e) {
 			Silewarner.error(DiskFile.class, e);
 		}
-		throw new UnsupportedOperationException();
+		return false;
 	}
 
 	/**
 	 * 清空
+	 * @return 是否成功
 	 */
-	public void truncate() {
+	public boolean truncate() {
 		try {
-			if (!bind(true)) return;
+			if (!bind(true)) return false;
 			capacity(1, hc * 2);
+			return true;
+		} catch (FileFullIOException e) {
+			return false;
 		} catch (IOException e) {
 			Silewarner.error(DiskFile.class, e);
 		}
+		return false;
 	}
 
 	/**
 	 * 写入内容
 	 * @param key 键值
 	 * @param value 内容
+	 * @return 是否成功
 	 */
-	public void write(byte[] key, String value) {
+	public boolean write(byte[] key, String value) {
 		w: try {
 			if (!bind(true)) break w;
 			key = key(key);
@@ -128,11 +140,13 @@ class DiskFile implements Closeable {
 				if (pos != null) write(pos, bs);
 				else break w;
 			}
-			return;
+			return true;
+		} catch (FileFullIOException e) {
+			return false;
 		} catch (IOException e) {
 			Silewarner.error(DiskFile.class, e);
 		}
-		throw new UnsupportedOperationException();
+		return false;
 	}
 
 	/**
@@ -164,7 +178,12 @@ class DiskFile implements Closeable {
 			} else if (!write) {
 				break b;
 			}
-			DiskBinder.bind(file);
+			if (!DiskBinder.bind(file)) {
+				file.setLength(0);
+				break b;
+			} else {
+				binded = true;
+			}
 			return true;
 		}
 		return false;
@@ -324,6 +343,7 @@ class DiskFile implements Closeable {
 		long len = 0;
 		if (cur >= base) len = base + ct * pn * x;
 		else len = hc * 2 + pn * x;
+		if (len > 5 * 1024 * 1024) throw new FileFullIOException();
 		file.setLength(len);
 		file.seek(cur);
 		for (long s = cur; s < len; s++)
