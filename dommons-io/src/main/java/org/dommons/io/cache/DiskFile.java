@@ -26,11 +26,12 @@ import org.dommons.security.coder.HexCoder;
  */
 class DiskFile implements Closeable {
 
-	static Charset charset = Stringure.charset("utf-8", "gbk", "big5");
+	static final Charset charset = Stringure.charset("utf-8", "gbk", "big5");
 
 	static final int pn = 512;
 	static final int ct = 64;
 	static final int hc = 16;
+	static final int limit = 64 * 1024 * 1024;
 
 	static final byte em = '*';
 	static final byte end = '#';
@@ -343,7 +344,7 @@ class DiskFile implements Closeable {
 		long len = 0;
 		if (cur >= base) len = base + ct * pn * x;
 		else len = hc * 2 + pn * x;
-		if (len > 5 * 1024 * 1024) throw new FileFullIOException();
+		if (len > base + limit) throw new FileFullIOException();
 		file.setLength(len);
 		file.seek(cur);
 		for (long s = cur; s < len; s++)
