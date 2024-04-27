@@ -49,20 +49,17 @@ class DiskStore extends DiskLock {
 	 * @param key 缓存键值
 	 */
 	public void remove(String key) {
-		for (int i = 0; i < 2; i++) {
-			DiskFile df = getWriteFile();
-			remove: try {
-				if (key == null) {
-					if (!df.truncate()) break remove;
-				} else {
-					if (!df.remove(key(key))) break remove;
-				}
-				return;
-			} finally {
-				if (df != null) df.close();
+		DiskFile df = getWriteFile();
+		try {
+			if (key == null) {
+				if (df.truncate()) return;
+			} else {
+				if (df.remove(key(key))) return;
 			}
-			reset(file);
+		} finally {
+			if (df != null) df.close();
 		}
+		reset(file);
 	}
 
 	/**
