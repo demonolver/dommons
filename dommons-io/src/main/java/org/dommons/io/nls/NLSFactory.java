@@ -68,8 +68,12 @@ public final class NLSFactory {
 	static <N extends NLS> N create(NLSBundle bundle, Class<N> cls) {
 		if (bundle == null) return null;
 		Class sc = null, ic = null;
-		if (cls.isInterface()) ic = cls;
-		else sc = cls;
+		if (cls.isInterface()) {
+			ic = cls;
+			sc = AbstractNLS.class;
+		} else {
+			sc = cls;
+		}
 		return ProxyFactory.newInstance(new NLSInvoker(bundle), sc, ic);
 	}
 

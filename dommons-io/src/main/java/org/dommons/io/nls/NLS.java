@@ -19,19 +19,19 @@ public interface NLS extends ProguardIgnore {
 	 * 获取当前语言环境
 	 * @return 语言环境
 	 */
-	public Locale currentLocale();
+	Locale currentLocale();
 
 	/**
 	 * 获取信息
 	 * @param key 信息键值
 	 * @return 信息
 	 */
-	public String get(String key);
+	String get(String key);
 
 	/**
 	 * 获取多语言信息项
 	 * @param key 信息键值
 	 * @return 信息项
 	 */
-	public NLSItem item(String key);
+	NLSItem item(String key);
 }
