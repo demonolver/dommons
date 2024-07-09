@@ -70,7 +70,6 @@ public final class NLSFactory {
 		Class sc = null, ic = null;
 		if (cls.isInterface()) {
 			ic = cls;
-			sc = AbstractNLS.class;
 		} else {
 			sc = cls;
 		}
