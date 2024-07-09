@@ -3,6 +3,7 @@
  */
 package org.dommons.core.proxy;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
@@ -29,6 +30,22 @@ class CglibProxy {
 		if (!Arrayard.isEmpty(interfaces)) en.setInterfaces(interfaces);
 		en.setCallback(new CglibHandler(h));
 		return (O) en.create();
+	}
+
+	/**
+	 * 获取代理处理器
+	 * @param proxy 代理实例
+	 * @return 代理处理器
+	 */
+	public static InvocationHandler getInvocationHandler(Object proxy) {
+		try {
+			Field field = proxy.getClass().getDeclaredField("CGLIB$CALLBACK_0");
+			field.setAccessible(true);
+			Object h = field.get(proxy);
+			if (h instanceof CglibHandler) return ((CglibHandler) h).h;
+		} catch (Throwable t) { // ignored
+		}
+		return null;
 	}
 
 	/**

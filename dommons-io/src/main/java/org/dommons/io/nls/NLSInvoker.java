@@ -32,7 +32,6 @@ class NLSInvoker implements InvocationHandler {
 
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		if (method.getDeclaringClass().equals(Object.class)) return doNativeObject(method, args, proxy);
-		else if (method.getDeclaringClass().equals(AbstractNLS.class)) return doAbstract(method, args, proxy);
 		String name = method.getName();
 		if ("currentLocale".equals(name)) return NLSLocal.get();
 		else if (nativeMethod(name, method))
@@ -41,16 +40,12 @@ class NLSInvoker implements InvocationHandler {
 	}
 
 	/**
-	 * 执行抽象类方法
-	 * @param method 方法体
-	 * @param args 参数集
+	 * 执行自检
 	 * @param proxy 代理对象实体
-	 * @return 结果
+	 * @param out 结果输出
 	 */
-	protected Object doAbstract(Method method, Object[] args, Object proxy) {
-		if (method.getName().equals("startEvaluate") && PrintStream.class.equals(Arrayard.get(method.getParameterTypes(), 0)))
-			return doEvaluate(args[0], proxy);
-		return null;
+	protected void doEvaluate(Object proxy, PrintStream out) {
+		doEvaluate(proxy.getClass(), out, new HashSet());
 	}
 
 	/**
@@ -110,7 +105,7 @@ class NLSInvoker implements InvocationHandler {
 				String name = m.getName();
 				if (!set.add(name) || nativeMethod(name, m)) continue;
 				String v = bundle.get(null, name);
-				if (name.equals(v)) out.println(name + " not found");
+				if (name.equals(v)) out.println("key `" + name + "` not found");
 			}
 		}
 		Class[] is = type.getInterfaces();
@@ -119,14 +114,6 @@ class NLSInvoker implements InvocationHandler {
 			if (!set.add("type:" + itype.getName())) continue;
 			doEvaluate(itype, out, set);
 		}
-	}
-
-	Object doEvaluate(Object arg, Object proxy) {
-		if (arg instanceof PrintStream) {
-			PrintStream out = (PrintStream) arg;
-			doEvaluate(proxy.getClass(), out, new HashSet());
-		}
-		return null;
 	}
 
 	/**

@@ -54,6 +54,16 @@ public class ProxyFactory {
 		return c[0];
 	}
 
+	public static InvocationHandler getInvocationHandler(Object proxy) {
+		if (proxy == null) return null;
+		Class<?> clazz = proxy.getClass();
+		String spring = "org.springframework.cglib.proxy.Enhancer", cglib = "net.sf.cglib.proxy.Enhancer";
+		if (existClass(spring) && SpringProxy.isProxyClass(clazz)) return SpringProxy.getInvocationHandler(proxy);
+		else if (existClass(cglib) && CglibProxy.isProxyClass(clazz)) return CglibProxy.getInvocationHandler(proxy);
+		else if (Proxy.isProxyClass(clazz)) return Proxy.getInvocationHandler(proxy);
+		else return null;
+	}
+
 	/**
 	 * 是否代理类型
 	 * @param clazz 类型
@@ -61,8 +71,9 @@ public class ProxyFactory {
 	 */
 	public static boolean isProxyClass(Class<?> clazz) {
 		if (clazz == null) return false;
-		if (existClass("org.springframework.cglib.proxy.Enhancer") && SpringProxy.isProxyClass(clazz)) return true;
-		else if (existClass("net.sf.cglib.proxy.Enhancer") && CglibProxy.isProxyClass(clazz)) return true;
+		String spring = "org.springframework.cglib.proxy.Enhancer", cglib = "net.sf.cglib.proxy.Enhancer";
+		if (existClass(spring) && SpringProxy.isProxyClass(clazz)) return true;
+		else if (existClass(cglib) && CglibProxy.isProxyClass(clazz)) return true;
 		else if (existClass("javassist.util.proxy.ProxyFactory") && JavassistProxy.isProxyClass(clazz)) return true;
 		return Proxy.isProxyClass(clazz);
 	}
@@ -76,8 +87,9 @@ public class ProxyFactory {
 	 */
 	public static <O> O newInstance(InvocationHandler h, Class sc, Class... interfaces) {
 		if (h == null) return null;
-		if (existClass("org.springframework.cglib.proxy.Enhancer")) return SpringProxy.create(h, sc, interfaces);
-		else if (existClass("net.sf.cglib.proxy.Enhancer")) return CglibProxy.create(h, sc, interfaces);
+		String spring = "org.springframework.cglib.proxy.Enhancer", cglib = "net.sf.cglib.proxy.Enhancer";
+		if (existClass(spring)) return SpringProxy.create(h, sc, interfaces);
+		else if (existClass(cglib)) return CglibProxy.create(h, sc, interfaces);
 		else if (sc != null) throw new UnsupportedOperationException("unable to create proxy with super class");
 		else if (Arrayard.isEmpty(interfaces)) return null;
 		else return (O) Proxy.newProxyInstance(interfaces[0].getClassLoader(), interfaces, h);
