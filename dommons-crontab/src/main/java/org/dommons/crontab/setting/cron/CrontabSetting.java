@@ -107,7 +107,11 @@ class CrontabSetting extends CronSetting {
 	protected boolean nextSecond(Calendar cal, int[] v, long last) {
 		if (seconds.isEmpty()) {
 			if (cal.getTimeInMillis() - last < 60000) cal.add(Calendar.SECOND, 60 - cal.get(Calendar.SECOND));
-			if (cal.get(Calendar.SECOND) == 0) cal.add(Calendar.SECOND, Randoms.randomInteger(6));
+			if (cal.get(Calendar.SECOND) == 0) {
+				int diff = (int) (Math.max(cal.getTimeInMillis() - last, 0) / 1000);
+				int rand = Math.min((diff + 199) / 200, 9) * 5 + 1;
+				cal.add(Calendar.SECOND, Randoms.randomInteger(rand));
+			}
 		} else {
 			v[0] = cal.get(Calendar.SECOND);
 			SortedSet<Integer> st = seconds.tailSet(v[0]);
