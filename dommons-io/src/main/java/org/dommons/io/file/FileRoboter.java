@@ -722,7 +722,7 @@ public final class FileRoboter {
 
 		for (File file : directory.listFiles(filter)) {
 			if (file.isFile()) duplicate(file, target, remove, overlap);
-			else if (file.isDirectory()) duplicate(directory, target, filter, true, remove, overlap);
+			else if (file.isDirectory()) duplicate(file, target, filter, true, remove, overlap);
 		}
 
 		if (remove) directory.delete();
