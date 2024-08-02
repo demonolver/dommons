@@ -68,6 +68,7 @@ public final class Pathfinder {
 	 * @throws IllegalArgumentException 输入的<code>value</code>为空字符串
 	 */
 	public static String convertClassPath(String value) throws IllegalArgumentException {
+		if (value.startsWith("~/")) value = "${user.home}" + value.substring(1);
 		return Stringure.convertSystemVariables(value);
 	}
 
