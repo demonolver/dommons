@@ -781,11 +781,12 @@ public final class Arrayard {
 	protected static Object toArray(Class componentType, Collection list) {
 		if (list == null) return null;
 		if (componentType == null) return list.toArray();
-		Object array = Array.newInstance(componentType, list.size());
-		int index = 0;
-		for (Iterator it = list.iterator(); it.hasNext();) {
-			Object item = Converter.P.convert(it.next(), componentType);
-			set(array, index++, item, componentType);
+		Object[] items = list.toArray();
+		int len = items.length;
+		Object array = Array.newInstance(componentType, len);
+		for (int i = 0; i < len; i++) {
+			Object item = Converter.P.convert(items[i], componentType);
+			set(array, i, item, componentType);
 		}
 		return array;
 	}
