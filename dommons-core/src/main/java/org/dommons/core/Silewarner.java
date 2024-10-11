@@ -184,7 +184,7 @@ public final class Silewarner {
 			Object logger = getLogger(cls);
 			if (logger == null) return null;
 			if (cache == null) {
-				synchronized (Log4jHandler.cache) {
+				synchronized (Log4jHandler.class) {
 					if (cache == null) cache = new MemcacheMap(TimeUnit.HOURS.toMillis(3), TimeUnit.HOURS.toMillis(24));
 				}
 			}
