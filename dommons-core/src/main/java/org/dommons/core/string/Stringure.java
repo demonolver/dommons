@@ -1523,7 +1523,7 @@ public final class Stringure {
 	 */
 	public static byte[] toBytes(CharSequence content, int offset, int length, Charset cs) {
 		int len = content == null ? 0 : content.length();
-		if (length == 0 || offset > len) return embytes;
+		if (len == 0 || length == 0 || offset > len) return embytes;
 		if (offset < 0) offset = 0;
 
 		if (cs == null) cs = Environments.defaultCharset();

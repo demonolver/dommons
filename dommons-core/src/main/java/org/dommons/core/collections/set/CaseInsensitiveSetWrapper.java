@@ -235,11 +235,11 @@ class CaseInsensitiveSetWrapper extends AbstractCollection<String> implements Se
 			if (syn) {
 				synchronized (index) {
 					it.remove();
-					index.remove(last);
+					index.remove(convertKey(last));
 				}
 			} else {
 				it.remove();
-				index.remove(last);
+				index.remove(convertKey(last));
 			}
 		}
 	}
