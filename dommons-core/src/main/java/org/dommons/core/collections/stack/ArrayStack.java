@@ -148,7 +148,7 @@ public class ArrayStack<E> extends AbstractStack<E> implements Stack<E>, Cloneab
 
 		for (int i = 0; i < size; i++) {
 			if (i > 0) buf.append(", ");
-			E o = elementDatas[size];
+			E o = elementDatas[i];
 			buf.append(o == this ? "(this stack)" : String.valueOf(o));
 		}
 
