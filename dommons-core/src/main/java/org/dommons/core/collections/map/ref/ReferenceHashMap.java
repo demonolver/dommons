@@ -348,14 +348,16 @@ public abstract class ReferenceHashMap<K, V> extends AbstractMap<K, V> {
 				ReferenceEntry<K, V> p = prev;
 				while (p != null) {
 					ReferenceEntry<K, V> next = p.next;
-					if (p.match(e) || p.isEvicted()) {
-						if (prev == p) table[i] = next;
+					boolean match = false;
+					if ((match = p.match(e)) || p.isEvicted()) {
+						if (table[i] == p) table[i] = next;
 						else prev.next = next;
 						p.next = null; // Help GC
 						size--;
-						break;
+						if (match) break;
+					} else {
+						prev = p;
 					}
-					prev = p;
 					p = next;
 				}
 			} finally {

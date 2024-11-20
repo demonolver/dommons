@@ -82,7 +82,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Boolean> asList(boolean... array) {
+	public static List<Boolean> asList(boolean[] array) {
 		return toList(array);
 	}
 
@@ -91,7 +91,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Byte> asList(byte... array) {
+	public static List<Byte> asList(byte[] array) {
 		return toList(array);
 	}
 
@@ -100,7 +100,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Character> asList(char... array) {
+	public static List<Character> asList(char[] array) {
 		return toList(array);
 	}
 
@@ -109,7 +109,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Double> asList(double... array) {
+	public static List<Double> asList(double[] array) {
 		return toList(array);
 	}
 
@@ -118,7 +118,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Float> asList(float... array) {
+	public static List<Float> asList(float[] array) {
 		return toList(array);
 	}
 
@@ -127,7 +127,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Integer> asList(int... array) {
+	public static List<Integer> asList(int[] array) {
 		return toList(array);
 	}
 
@@ -136,7 +136,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Long> asList(long... array) {
+	public static List<Long> asList(long[] array) {
 		return toList(array);
 	}
 
@@ -155,7 +155,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 列表
 	 */
-	public static List<Short> asList(short... array) {
+	public static List<Short> asList(short[] array) {
 		return toList(array);
 	}
 
@@ -248,7 +248,7 @@ public final class Arrayard {
 	 * @param array 字节
 	 * @return 新数组
 	 */
-	public static byte[] deduplicate(byte... array) {
+	public static byte[] deduplicate(byte[] array) {
 		return toBytes(noduplicate(array));
 	}
 
@@ -257,7 +257,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 新数组
 	 */
-	public static char[] deduplicate(char... array) {
+	public static char[] deduplicate(char[] array) {
 		return toChars(noduplicate(array));
 	}
 
@@ -266,7 +266,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 新数组
 	 */
-	public static int[] deduplicate(int... array) {
+	public static int[] deduplicate(int[] array) {
 		return toInts(noduplicate(array));
 	}
 
@@ -275,7 +275,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 新数组
 	 */
-	public static long[] deduplicate(long... array) {
+	public static long[] deduplicate(long[] array) {
 		return toLongs(noduplicate(array));
 	}
 
@@ -295,7 +295,7 @@ public final class Arrayard {
 	 * @param array 数组
 	 * @return 新数组
 	 */
-	public static short[] deduplicate(short... array) {
+	public static short[] deduplicate(short[] array) {
 		return toShorts(noduplicate(array));
 	}
 
