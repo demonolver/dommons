@@ -155,7 +155,7 @@ public final class Environments {
 	public static boolean isWindows() {
 		String os = System.getProperty("os.name");
 		if (os == null) return false;
-		os = os.toLowerCase();
+		os = os.toLowerCase(Locale.US);
 		return os.contains("window");
 	}
 

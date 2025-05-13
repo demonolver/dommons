@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.dommons.core.Assertor;
@@ -42,7 +43,7 @@ public class ShowableConnection extends EssentialConnection {
 	 * @return 连接编号
 	 */
 	protected static String generateID() {
-		return UniQueness.generateHexUUID().toLowerCase();
+		return UniQueness.generateHexUUID().toLowerCase(Locale.US);
 	}
 
 	/**

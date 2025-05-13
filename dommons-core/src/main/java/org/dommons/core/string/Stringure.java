@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
@@ -295,7 +296,7 @@ public final class Stringure {
 		for (String s : vs) {
 			if ((type & 1) == 1) s = Stringure.trim(s);
 			String k = s;
-			if ((type & 2) == 2) k = s.toLowerCase();
+			if ((type & 2) == 2) k = s.toLowerCase(Locale.US);
 			if (xs.containsKey(k)) continue;
 			xs.put(k, s);
 		}

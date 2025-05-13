@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -89,7 +90,7 @@ public class AndroidEnvLoader extends EnvironmentLoader implements ProguardIgnor
 
 	private String apk() {
 		String path = ContextSet.get().getPackageResourcePath();
-		if (Stringure.trim(path).toLowerCase().endsWith(".apk")) return path;
+		if (Stringure.trim(path).toLowerCase(Locale.US).endsWith(".apk")) return path;
 		return null;
 	}
 

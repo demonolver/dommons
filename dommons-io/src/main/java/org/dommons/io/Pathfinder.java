@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -122,7 +123,7 @@ public final class Pathfinder {
 	public static URL findPath(String path) {
 		if (path == null) return null;
 		path = path.trim();
-		String lower = path.toLowerCase();
+		String lower = path.toLowerCase(Locale.US);
 		for (String prefix : classpath_prefixs) {
 			if (lower.startsWith(prefix)) return getResource(convertClassPath(path.substring(prefix.length())));
 		}
@@ -146,7 +147,7 @@ public final class Pathfinder {
 		Collection<URL> urls = new LinkedList();
 		if (path != null) {
 			path = Stringure.trim(path);
-			String lower = path.toLowerCase();
+			String lower = path.toLowerCase(Locale.US);
 			fetch: {
 				for (String prefix : classpath_prefixs) {
 					if (lower.startsWith(prefix)) {
@@ -351,7 +352,7 @@ public final class Pathfinder {
 		} else file: {
 			int pt = p.lastIndexOf('.');
 			if (pt < 0 || pt >= p.length() - 1) break file;
-			String end = p.toLowerCase().substring(pt + 1);
+			String end = p.toLowerCase(Locale.US).substring(pt + 1);
 			if (Arrayard.contains(end, zip_suffix)) {
 				File file = findFile(p);
 				if (file.exists() && file.isFile()) return new ZipFile(file);

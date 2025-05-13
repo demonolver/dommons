@@ -10,6 +10,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,7 +74,7 @@ class DefaultEnvLoader extends EnvironmentLoader {
 					jarfile = Pattern.compile("(?<=file\\:).+(\\.zip|\\.jar|\\.apk)(?=\\!)", Pattern.CASE_INSENSITIVE);
 			for (Enumeration<URL> en = gets(parent); en != null && en.hasMoreElements();) {
 				URL url = en.nextElement();
-				String pr = Stringure.trim(url.getProtocol()).toLowerCase();
+				String pr = Stringure.trim(url.getProtocol()).toLowerCase(Locale.US);
 				if ("file".equals(pr)) {
 					File file = new File(path(url));
 					if (!file.exists() || !file.isDirectory()) continue;

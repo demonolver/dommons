@@ -119,7 +119,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		Collection<String> list = new HashSet<String>();
 		for (String st : ss) {
 			if (Stringure.isEmpty(st)) continue;
-			list.add(Stringure.trim(st).toLowerCase());
+			list.add(Stringure.trim(st).toLowerCase(Locale.US));
 		}
 		return list.isEmpty() ? null : Arrayard.toArray(list, String.class);
 	}
@@ -237,7 +237,7 @@ abstract class NumberConverter<T extends Number> extends AbstractLocaleConverter
 		 * @return
 		 */
 		protected boolean match(Locale locale, String[] ls) {
-			String s = Stringure.join('_', locale.getLanguage(), locale.getCountry()).toLowerCase();
+			String s = Stringure.join('_', locale.getLanguage(), locale.getCountry()).toLowerCase(Locale.US);
 			for (String l : ls)
 				if (s.startsWith(l)) return true;
 			return false;

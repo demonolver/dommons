@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -339,7 +340,7 @@ public class HttpConnector {
 	 * @return 是、否
 	 */
 	protected static boolean isGzip(String ec) {
-		return ec != null && Pattern.compile("(?<=^|[\\s\\p{Punct}])gzip(?=$|[\\s\\p{Punct}])").matcher(ec.toLowerCase()).find();
+		return ec != null && Pattern.compile("(?<=^|[\\s\\p{Punct}])gzip(?=$|[\\s\\p{Punct}])").matcher(ec.toLowerCase(Locale.US)).find();
 	}
 
 	/**

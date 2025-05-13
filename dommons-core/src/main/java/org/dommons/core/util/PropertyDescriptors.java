@@ -12,6 +12,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -108,7 +109,7 @@ public class PropertyDescriptors {
 	 * @param method 方法
 	 */
 	protected void inner(Method method) {
-		String n = method.getName(), s = n.toLowerCase();
+		String n = method.getName(), s = n.toLowerCase(Locale.US);
 		if (s.length() <= 3 && !s.startsWith("is")) return;
 		Class rt = method.getReturnType();
 		Class[] pts = method.getParameterTypes();

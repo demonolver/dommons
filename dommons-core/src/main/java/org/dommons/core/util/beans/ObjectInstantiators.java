@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -165,7 +166,7 @@ public class ObjectInstantiators {
 	protected static <O> O newSerializable(Class clazz) {
 		ClassObjectInstantiator instantiator = iref == null ? null : iref.get();
 		if (instantiator == null) {
-			String jvm = Stringure.trim(System.getProperty("java.vm.name")).toLowerCase();
+			String jvm = Stringure.trim(System.getProperty("java.vm.name")).toLowerCase(Locale.US);
 			if (jvm.startsWith("dalvik")) instantiator = new AndroidObjectInstantiator();
 			else instantiator = new DefaultObjectInstantiator();
 			iref = new Softref(instantiator);

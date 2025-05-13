@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.security.SecureRandom;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
 
@@ -96,7 +97,7 @@ public class UniQueness {
 		val = hi | (val & (hi - 1));
 		if (hex) {
 			String v = null;
-			v = Radix64.toHex(val).toLowerCase();
+			v = Radix64.toHex(val).toLowerCase(Locale.US);
 			builder.append(v, 1, v.length());
 		} else {
 			builder.append(Radix64.toString(val, 62));
@@ -165,7 +166,7 @@ public class UniQueness {
 	 * @return 唯一编号
 	 */
 	public String generate() {
-		return MD5Cipher.encodeHex(generateData()).toLowerCase();
+		return MD5Cipher.encodeHex(generateData()).toLowerCase(Locale.US);
 	}
 
 	/**

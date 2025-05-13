@@ -40,7 +40,7 @@ public class NLSLocal {
 	 */
 	public static String acceptLanguage() {
 		String[] ss = locales();
-		return Stringure.join(',', ss).replace('_', '-').toLowerCase();
+		return Stringure.join(',', ss).replace('_', '-').toLowerCase(Locale.US);
 	}
 
 	/**
@@ -156,7 +156,7 @@ public class NLSLocal {
 				for (Locale l : ls) {
 					String key = Stringure.join('_', l.getLanguage(), l.getCountry());
 					map.put(key, l);
-					String[] ss = sm.get(key.toLowerCase());
+					String[] ss = sm.get(key.toLowerCase(Locale.US));
 					if (ss != null) {
 						for (String s : ss)
 							map.put(s, l);
@@ -200,9 +200,9 @@ public class NLSLocal {
 				String[] vs = v.split("(\\s*[,;:]\\s*)+");
 				Collection<String> xvs = new HashSet();
 				for (String x : vs)
-					xvs.add(Stringure.trim(x).toLowerCase());
+					xvs.add(Stringure.trim(x).toLowerCase(Locale.US));
 				xvs.remove(Stringure.empty);
-				map.put(k.toLowerCase(), Arrayard.toArray(xvs, String.class));
+				map.put(k.toLowerCase(Locale.US), Arrayard.toArray(xvs, String.class));
 			}
 		} catch (IOException e) {
 			Silewarner.warn(NLSLocal.class, e.toString());

@@ -5,6 +5,7 @@ package org.dommons.io.cache;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import org.dommons.core.convert.Converter;
@@ -26,7 +27,7 @@ class DiskStore extends DiskLock {
 	public DiskStore(File file) {
 		this.file = init(file);
 		this.key = key(this.file);
-		this.rw = lock(HexCoder.encodeBuffer(key).toLowerCase());
+		this.rw = lock(HexCoder.encodeBuffer(key).toLowerCase(Locale.US));
 	}
 
 	/**

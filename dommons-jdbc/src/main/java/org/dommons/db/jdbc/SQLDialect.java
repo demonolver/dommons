@@ -6,6 +6,7 @@ package org.dommons.db.jdbc;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.dommons.core.convert.Converter;
@@ -36,9 +37,9 @@ class SQLDialect {
 		Map prop = getProperties();
 		String value = null;
 		if (type != null) {
-			type = type.toLowerCase();
+			type = type.toLowerCase(Locale.US);
 			if (version != null) {
-				version = version.toLowerCase();
+				version = version.toLowerCase(Locale.US);
 				value = Bundles.getProperty(prop, type + '.' + version + '.' + content);
 			}
 			if (value == null) value = Bundles.getProperty(prop, type + '.' + content);

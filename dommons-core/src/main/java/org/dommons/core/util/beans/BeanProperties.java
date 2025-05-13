@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -358,7 +359,7 @@ public final class BeanProperties {
 	 * @return 是否追加属性
 	 */
 	protected boolean inner(Method m, boolean getter) {
-		String n = m.getName(), s = n.toLowerCase();
+		String n = m.getName(), s = n.toLowerCase(Locale.US);
 		if (s.length() <= 3 && !s.startsWith("is")) return false;
 		Class rt = m.getReturnType();
 		Class[] pts = m.getParameterTypes();

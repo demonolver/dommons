@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
+import java.util.Locale;
 import java.util.concurrent.locks.Lock;
 
 import org.dommons.core.Silewarner;
@@ -372,7 +373,7 @@ class DiskFile implements Closeable {
 	 * @return 哈希值
 	 */
 	private int hash(byte[] key) {
-		int h = HexCoder.encodeBuffer(key).toLowerCase().hashCode();
+		int h = HexCoder.encodeBuffer(key).toLowerCase(Locale.US).hashCode();
 		return Math.abs(h) % ct;
 	}
 
@@ -403,7 +404,7 @@ class DiskFile implements Closeable {
 			case sep:
 			case end:
 				bos.write('\\');
-				bos.write(Radix64.toHex(b).toLowerCase().getBytes());
+				bos.write(Radix64.toHex(b).toLowerCase(Locale.US).getBytes());
 				break;
 
 			default:

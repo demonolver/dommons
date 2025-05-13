@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -389,7 +390,7 @@ public final class FileRoboter {
 			byte[] bs = new byte[128];
 			for (int r = 0; (r = is.read(bs)) != -1;)
 				digest.update(bs, 0, r);
-			String md5 = HexCoder.encodeBuffer(digest.digest()).toLowerCase();
+			String md5 = HexCoder.encodeBuffer(digest.digest()).toLowerCase(Locale.US);
 			return md5;
 		} catch (Throwable e) {
 			return null;

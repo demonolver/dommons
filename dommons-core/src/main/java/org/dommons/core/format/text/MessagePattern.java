@@ -91,7 +91,7 @@ class MessagePattern implements Serializable, Cloneable {
 	 * @return 位置
 	 */
 	protected static final int findKeyword(String s, String[] list) {
-		s = s.trim().toLowerCase();
+		s = s.trim().toLowerCase(Locale.US);
 		for (int i = 0; i < list.length; ++i) {
 			if (s.equals(list[i])) return i;
 		}

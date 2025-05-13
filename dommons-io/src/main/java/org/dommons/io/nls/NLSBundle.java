@@ -321,7 +321,7 @@ class NLSBundle {
 	 * @return 关联语言
 	 */
 	private Collection<String> defaultLink(String l) {
-		l = l.toLowerCase();
+		l = l.toLowerCase(Locale.US);
 		Collection<String> ds = dls.get(l);
 		if (ds == null) {
 			Map<String, String> dms = defaultLocales();
