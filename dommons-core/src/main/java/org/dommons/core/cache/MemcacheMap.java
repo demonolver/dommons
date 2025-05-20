@@ -322,7 +322,7 @@ public class MemcacheMap<K, V> extends DataCacheMap<K, V> implements Serializabl
 			if (javaVersion() < 1.7) return null;
 			if (t == null) {
 				synchronized (MemCleanThread.class) {
-					if (t == null) new MemCleanThread();
+					if (t == null) t = new MemCleanThread();
 				}
 			}
 			return t;
