@@ -242,7 +242,7 @@ public final class Stringure {
 	 * </table>
 	 * </p>
 	 * <p>
-	 * ${a} + ${b} = $[c} -> apple + bean = class
+	 * ${a} + ${b} = ${c} -> apple + bean = class
 	 * </p>
 	 * @param str 字符串
 	 * @param vars 变量集

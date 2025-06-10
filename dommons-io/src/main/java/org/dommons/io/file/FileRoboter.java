@@ -797,7 +797,9 @@ public final class FileRoboter {
 		if (!dir.isDirectory()) return;
 
 		for (File file : dir.listFiles(filter)) {
-			if (file.isDirectory()) {
+			if (!filter.accept(file)) {
+				continue;
+			} else if (file.isDirectory()) {
 				innerFileList(list, file, filter);
 			} else {
 				list.add(file);
