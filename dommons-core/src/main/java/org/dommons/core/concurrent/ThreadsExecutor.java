@@ -5,6 +5,7 @@ package org.dommons.core.concurrent;
 
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +23,11 @@ public class ThreadsExecutor extends AbsThreadsExecutor {
 	 */
 	public static void shutdown(ExecutorService es) {
 		if (es == null) return;
+		if(es instanceof ScheduledThreadPoolExecutor) {
+			ScheduledThreadPoolExecutor scheduled = (ScheduledThreadPoolExecutor) es;
+			scheduled.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+			scheduled.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+		}
 		es.shutdown();
 		for (;;) {
 			try {
