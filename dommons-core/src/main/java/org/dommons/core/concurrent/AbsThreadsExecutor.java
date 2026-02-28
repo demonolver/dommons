@@ -48,6 +48,8 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	private final Condition termination;
 	private final AtomicInteger wcount;
 
+	private long workerIdleTimeout;
+
 	volatile int runState;
 	Map<Long, Worker> workers;
 
@@ -62,6 +64,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		this.mainLock = new ReentrantLock();
 		this.termination = mainLock.newCondition();
 		this.wcount = new AtomicInteger(0);
+		this.workerIdleTimeout = 3600_000l;
 	}
 
 	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
@@ -109,6 +112,14 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		ThreadsMonitor tm = ref == null ? null : ref.get();
 		if (tm == null) ref = new SoftReference(tm = new Monitor());
 		return tm;
+	}
+
+	/**
+	 * 设置工作者空闲超时时长
+	 * @param workerIdleTimeout 工作者空闲超时时长 (毫秒)
+	 */
+	public void setWorkerIdleTimeout(long workerIdleTimeout) {
+		this.workerIdleTimeout = workerIdleTimeout;
 	}
 
 	public void shutdown() {
@@ -615,13 +626,13 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 */
 	protected final class Worker implements Runnable {
 
-		final long s;
+		long s;
 		Runnable cTask;
 		Thread thread;
 
 		public Worker(Runnable task) {
 			this.cTask = task;
-			this.s = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(8);
+			this.s = System.currentTimeMillis();
 		}
 
 		public void run() {
@@ -647,7 +658,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		 * @return 是、否
 		 */
 		private boolean runOver() {
-			if (System.currentTimeMillis() >= s) return true;
+			if (System.currentTimeMillis() - s > workerIdleTimeout) return true;
 			else if (runState > RUNNING) return true;
 			return false;
 		}
@@ -659,6 +670,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		private void runTask(Runnable task) {
 			wcount.decrementAndGet();
 			try {
+				this.s = System.currentTimeMillis();
 				runWorker(task, thread);
 			} finally {
 				wcount.incrementAndGet();

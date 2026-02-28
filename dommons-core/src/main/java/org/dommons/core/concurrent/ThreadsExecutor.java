@@ -23,7 +23,7 @@ public class ThreadsExecutor extends AbsThreadsExecutor {
 	 */
 	public static void shutdown(ExecutorService es) {
 		if (es == null) return;
-		if(es instanceof ScheduledThreadPoolExecutor) {
+		if (es instanceof ScheduledThreadPoolExecutor) {
 			ScheduledThreadPoolExecutor scheduled = (ScheduledThreadPoolExecutor) es;
 			scheduled.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
 			scheduled.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
@@ -48,6 +48,33 @@ public class ThreadsExecutor extends AbsThreadsExecutor {
 		this(size, (ThreadFactory) null);
 	}
 
+	public ThreadsExecutor(int min, int max) {
+		this(min, max, (ThreadFactory) null);
+	}
+
+	public ThreadsExecutor(int min, int max, Queue queue, String name) {
+		this(min, max, Stringure.isEmpty(name) ? null : new NamedThreadFactory(name), queue);
+	}
+
+	public ThreadsExecutor(int min, int max, String name) {
+		this(min, max, null, name);
+	}
+
+	public ThreadsExecutor(int min, int max, ThreadFactory threadFactory) {
+		this(min, max, threadFactory, null);
+	}
+
+	public ThreadsExecutor(int min, int max, ThreadFactory threadFactory, Queue queue) {
+		super(threadFactory, queue);
+		this.size = Math.max(1, max);
+		if (min > 0) {
+			this.min = min;
+		} else {
+			int as = Runtime.getRuntime().availableProcessors();
+			this.min = this.size > as ? as : (this.size / 2);
+		}
+	}
+
 	public ThreadsExecutor(int size, Queue queue, String name) {
 		this(size, Stringure.isEmpty(name) ? null : new NamedThreadFactory(name), queue);
 	}
@@ -61,10 +88,7 @@ public class ThreadsExecutor extends AbsThreadsExecutor {
 	}
 
 	public ThreadsExecutor(int size, ThreadFactory threadFactory, Queue queue) {
-		super(threadFactory, queue);
-		this.size = Math.max(1, size);
-		int as = Runtime.getRuntime().availableProcessors();
-		this.min = this.size > as ? as : (this.size / 2);
+		this(0, size, threadFactory, queue);
 	}
 
 	protected int maxSize() {
