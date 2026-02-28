@@ -15,7 +15,7 @@
 
 	<properties>
 		<project.base>${basedir}</project.base>
-		<jdk.version>1.6</jdk.version>
+		<jdk.version>1.7</jdk.version>
 		<spring.version>4.3.17.RELEASE</spring.version>
 		<dommons.version>0.4.9-SNAPSHOT</dommons.version>
 		<deploy.skip>false</deploy.skip>

@@ -7,7 +7,6 @@
 
 	<properties>
 		<android.version>5.0.1</android.version>
-		<jdk.version>1.7</jdk.version>
 	</properties>
 
 	<parent>
