@@ -341,7 +341,7 @@ public final class BeanProperties {
 	 */
 	protected void fetch(Class clazz) {
 		Map<String, Method> ms = new HashMap();
-		methods(clazz, ms);
+		methods(clazz, ms, clazz);
 
 		for (Iterator<Method> it = ms.values().iterator(); it.hasNext();) {
 			if (!inner(it.next(), true)) continue;
@@ -457,7 +457,7 @@ public final class BeanProperties {
 	 * @param c 类型
 	 * @param ms 方法集
 	 */
-	void methods(Class c, Map<String, Method> ms) {
+	void methods(Class c, Map<String, Method> ms, Class<?> $finally) {
 		Method[] methods = c.getMethods();
 		if (methods != null) {
 			for (Method m : methods) {
@@ -466,18 +466,27 @@ public final class BeanProperties {
 				if (pts != null && pts.length > 1) continue;
 				String f = feature(m);
 				if (ms.containsKey(f)) continue;
+				if (!m.getDeclaringClass().equals($finally)) {
+					try {
+						Class<?> mc = m.getDeclaringClass();
+						m = $finally.getMethod(m.getName(), m.getParameterTypes());
+						if (!Modifier.isPublic(mc.getModifiers()) || Modifier.isFinal(m.getModifiers())) m.setAccessible(true);
+					} catch (NoSuchMethodException e) {
+					} catch (SecurityException e) {
+					}
+				}
 				ms.put(f, m);
 			}
 		}
 
 		Class parent = c.getSuperclass();
-		if (parent != null) methods(parent, ms);
-		else if (!Object.class.equals(c)) methods(Object.class, ms);
+		if (parent != null) methods(parent, ms, $finally);
+		else if (!Object.class.equals(c)) methods(Object.class, ms, $finally);
 
 		Class[] inters = c.getInterfaces();
 		if (inters != null) {
 			for (Class inter : inters) {
-				if (inter != null) methods(inter, ms);
+				if (inter != null) methods(inter, ms, $finally);
 			}
 		}
 	}
