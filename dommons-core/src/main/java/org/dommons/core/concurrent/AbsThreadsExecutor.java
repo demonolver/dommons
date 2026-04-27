@@ -345,7 +345,6 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		boolean workerStarted = false;
 		if (t != null) {
 			if (t.isAlive()) return null;
-			w.thread = t;
 			workers.put(t.getId(), w);
 			try {
 				t.start();
@@ -419,7 +418,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		final Lock mainLock = this.mainLock;
 		mainLock.lock();
 		try {
-			workers.remove(w.thread.getId());
+			workers.remove(w.getThreadID());
 			if (workers.size() == 0) tryTerminate();
 		} finally {
 			mainLock.unlock();
@@ -636,12 +635,12 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 
 		private final long max;
 
-		long last;
-		Runnable cTask;
-		Thread thread;
+		private long last;
+		private Runnable first;
+		private Thread binded;
 
 		public Worker(Runnable task) {
-			this.cTask = task;
+			this.first = task;
 			long now = System.currentTimeMillis(), max = workerMaxTimeout();
 			this.last = now;
 			this.max = max > 0 ? now + max : 0;
@@ -650,9 +649,10 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		public void run() {
 			wcount.incrementAndGet();
 			try {
-				Runnable task = cTask;
-				cTask = null;
-				for (;;) {
+				binded = Thread.currentThread();
+				Runnable task = first;
+				first = null;
+				for (; binded.getId() == Thread.currentThread().getId();) {
 					while (task != null || (task = getTask()) != null) {
 						runTask(task);
 						task = null;
@@ -663,6 +663,10 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 				workerDone(this);
 				wcount.decrementAndGet();
 			}
+		}
+
+		protected long getThreadID() {
+			return binded == null ? -1 : binded.getId();
 		}
 
 		/**
@@ -685,7 +689,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 			wcount.decrementAndGet();
 			try {
 				this.last = System.currentTimeMillis();
-				runWorker(task, thread);
+				runWorker(task, binded);
 			} finally {
 				wcount.incrementAndGet();
 			}
