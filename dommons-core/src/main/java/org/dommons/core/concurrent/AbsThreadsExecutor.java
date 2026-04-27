@@ -319,6 +319,14 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	}
 
 	/**
+	 * 获取工作线程最大运行工作时长
+	 * @return 最大工作时长
+	 */
+	protected long workerMaxTimeout() {
+		return 0;
+	}
+
+	/**
 	 * 获取工作线程数
 	 * @return 线程数
 	 */
@@ -626,13 +634,17 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 	 */
 	protected final class Worker implements Runnable {
 
-		long s;
+		private final long max;
+
+		long last;
 		Runnable cTask;
 		Thread thread;
 
 		public Worker(Runnable task) {
 			this.cTask = task;
-			this.s = System.currentTimeMillis();
+			long now = System.currentTimeMillis(), max = workerMaxTimeout();
+			this.last = now;
+			this.max = max > 0 ? now + max : 0;
 		}
 
 		public void run() {
@@ -658,7 +670,9 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		 * @return 是、否
 		 */
 		private boolean runOver() {
-			if (System.currentTimeMillis() - s > workerIdleTimeout) return true;
+			long now = System.currentTimeMillis();
+			if (now - last > workerIdleTimeout) return true;
+			else if (max > 0 && now > max) return true;
 			else if (runState > RUNNING) return true;
 			return false;
 		}
@@ -670,7 +684,7 @@ public abstract class AbsThreadsExecutor extends AbstractExecutorService {
 		private void runTask(Runnable task) {
 			wcount.decrementAndGet();
 			try {
-				this.s = System.currentTimeMillis();
+				this.last = System.currentTimeMillis();
 				runWorker(task, thread);
 			} finally {
 				wcount.incrementAndGet();
